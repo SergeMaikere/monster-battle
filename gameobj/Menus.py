@@ -86,19 +86,33 @@ class Menus:
 
 		self.monster = monster
 
+		self.state = 'general'
+
 		self.general_options = [ 'attack', 'heal', 'switch', 'escape' ]
 		self.general_dimensions = (2, 2)
 		self.general_index: RowCol = { 'row': 0, 'col': 0 }
 		self.general_menu = Menu( pygame.FRect(self.left, self.top, 400, 200), self.general_options, self.general_index, self.general_dimensions )
 
+
+	def __get_menu_datas ( self ):
+		match self.state:
+			case 'general': return (self.general_index, self.general_dimensions, self.general_options)
+		return (self.general_index, self.general_dimensions, self.general_options)
+
 	def __input ( self ):
 		keys = pygame.key.get_just_pressed()
-		self.general_index['row'] = (self.general_index['row'] + int(keys[pygame.K_DOWN]) - int(keys[pygame.K_UP]) ) % self.general_dimensions[0]
-		self.general_index['col'] = (self.general_index['col'] + int(keys[pygame.K_RIGHT]) - int(keys[pygame.K_LEFT]) ) % self.general_dimensions[1]
-		print(self.general_index)
+		index, dimensions, options = self.__get_menu_datas()
+
+		index['row'] = (index['row'] + int(keys[pygame.K_DOWN]) - int(keys[pygame.K_UP]) ) % dimensions[0]
+		index['col'] = (index['col'] + int(keys[pygame.K_RIGHT]) - int(keys[pygame.K_LEFT]) ) % dimensions[1]
+
+		if keys[pygame.K_SPACE]:
+			self.state = options[ index['col'] + index['row'] * dimensions[1] ]
 
 	def update ( self ):
 		self.__input()
 
 	def draw ( self ):
-		self.general_menu.draw()
+		match self.state:
+			case 'general': self.general_menu.draw()
+			case 'attack': print('ATAAACK')
