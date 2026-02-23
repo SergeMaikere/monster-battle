@@ -80,11 +80,12 @@ class Game ():
 
             self.__draw_monster_floor()
 
-            self.menu.draw()
-
             self.all_sprites.update(dt)
 
             self.all_sprites.draw(self.canvas)
+
+            self.menu.update()
+            self.menu.draw()
 
             pygame.display.update()
 

@@ -1,21 +1,27 @@
+from typing import TypedDict
+
+from pygame.typing import ColorLike
 from settings import *
 from functools import partial
-from pygame import FRect, Surface
+from pygame import K_DOWN, FRect, Surface
 from entities.Monster import Monster
 from utils.Errors import NoDisplaySurface
 from utils.Helper import pipe
 
+class RowCol ( TypedDict ):
+	row: int
+	col: int
 
 class Menu:
-	def __init__( self, rect: FRect, cols: int, rows: int, options: list[str] ) -> None:
+	def __init__( self, rect: FRect, options: list[str], menu_index: RowCol, rows_cols: tuple[int, int] ) -> None:
 
 		self.canvas = pygame.display.get_surface()
 		self.font = pygame.font.Font(None, 30)
 
 		self.rect = rect
-		self.cols = cols
-		self.rows = rows
+		self.rows, self.cols = rows_cols
 		self.options = options
+		self.menu_index = menu_index
 
 	def __draw_menu_rect ( self ):
 		if not self.canvas: raise NoDisplaySurface()
@@ -33,8 +39,12 @@ class Menu:
 		y = self.rect.top + self.rect.height / (self.rows * 2) + row * (self.rect.height / self.rows)
 		return (x, y)
 
-	def __get_text_surface ( self, index: int ):
-		return self.font.render(self.options[index], True, COLORS['black'])
+	def __get_text_color ( self, row_col: tuple[int, int] ):
+		row, col = row_col
+		return COLORS['gray'] if row == self.menu_index['row'] and col == self.menu_index['col'] else COLORS['black']
+
+	def __get_text_surface ( self, color: ColorLike, index: int ):
+		return self.font.render(self.options[index], True, color)
 
 	def __get_text_rect ( self, pos: tuple[float, float], text_surface: Surface ): 
 		text_rect = text_surface.get_frect(center=pos)
@@ -42,9 +52,10 @@ class Menu:
 
 	def __get_text_surface_and_rect ( self, row_col: tuple[int, int] ):
 		pos = self.__get_text_pos(row_col)
+		color = self.__get_text_color(row_col)
 		return pipe(
 			self.__get_index,
-			self.__get_text_surface,
+			partial(self.__get_text_surface, color),
 			partial(self.__get_text_rect, pos)
 		)(row_col)
 
@@ -76,8 +87,18 @@ class Menus:
 		self.monster = monster
 
 		self.general_options = [ 'attack', 'heal', 'switch', 'escape' ]
-		self.general_menu = Menu( pygame.FRect(self.left, self.top, 400, 200), 2, 2, self.general_options )
+		self.general_dimensions = (2, 2)
+		self.general_index: RowCol = { 'row': 0, 'col': 0 }
+		self.general_menu = Menu( pygame.FRect(self.left, self.top, 400, 200), self.general_options, self.general_index, self.general_dimensions )
 
+	def __input ( self ):
+		keys = pygame.key.get_just_pressed()
+		self.general_index['row'] = (self.general_index['row'] + int(keys[pygame.K_DOWN]) - int(keys[pygame.K_UP]) ) % self.general_dimensions[0]
+		self.general_index['col'] = (self.general_index['col'] + int(keys[pygame.K_RIGHT]) - int(keys[pygame.K_LEFT]) ) % self.general_dimensions[1]
+		print(self.general_index)
+
+	def update ( self ):
+		self.__input()
 
 	def draw ( self ):
 		self.general_menu.draw()
