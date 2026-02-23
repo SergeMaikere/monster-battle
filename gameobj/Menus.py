@@ -1,5 +1,6 @@
 from typing import TypedDict
 
+from pygame.key import ScancodeWrapper
 from pygame.typing import ColorLike
 from settings import *
 from functools import partial
@@ -93,21 +94,31 @@ class Menus:
 		self.general_index: RowCol = { 'row': 0, 'col': 0 }
 		self.general_menu = Menu( pygame.FRect(self.left, self.top, 400, 200), self.general_options, self.general_index, self.general_dimensions )
 
+		self.attack_options = self.monster.abilities
+		self.attack_dimensions = (2, 2)
+		self.attack_index: RowCol = { 'row': 0, 'col': 0 }
+		self.attack_menu = Menu( pygame.FRect(self.left, self.top, 400, 200), self.attack_options, self.attack_index, self.attack_dimensions )
+
 
 	def __get_menu_datas ( self ):
 		match self.state:
 			case 'general': return (self.general_index, self.general_dimensions, self.general_options)
+			case 'attack': return (self.attack_index, self.attack_dimensions, self.attack_options)
 		return (self.general_index, self.general_dimensions, self.general_options)
+
+	def __update_index ( self, keys: ScancodeWrapper, index: RowCol, dimensions: tuple[int, int] ):
+		index['row'] = (index['row'] + int(keys[pygame.K_DOWN]) - int(keys[pygame.K_UP]) ) % dimensions[0]
+		index['col'] = (index['col'] + int(keys[pygame.K_RIGHT]) - int(keys[pygame.K_LEFT]) ) % dimensions[1]
+
+	def __update_state ( self, keys: ScancodeWrapper, index: RowCol, dimensions: tuple[int, int], options: list[str] ):
+		if keys[pygame.K_SPACE]:
+			self.state = options[ index['col'] + index['row'] * dimensions[1] ]
 
 	def __input ( self ):
 		keys = pygame.key.get_just_pressed()
 		index, dimensions, options = self.__get_menu_datas()
-
-		index['row'] = (index['row'] + int(keys[pygame.K_DOWN]) - int(keys[pygame.K_UP]) ) % dimensions[0]
-		index['col'] = (index['col'] + int(keys[pygame.K_RIGHT]) - int(keys[pygame.K_LEFT]) ) % dimensions[1]
-
-		if keys[pygame.K_SPACE]:
-			self.state = options[ index['col'] + index['row'] * dimensions[1] ]
+		self.__update_index(keys, index, dimensions)
+		self.__update_state(keys, index, dimensions, options)
 
 	def update ( self ):
 		self.__input()
@@ -115,4 +126,4 @@ class Menus:
 	def draw ( self ):
 		match self.state:
 			case 'general': self.general_menu.draw()
-			case 'attack': print('ATAAACK')
+			case 'attack': self.attack_menu.draw()
