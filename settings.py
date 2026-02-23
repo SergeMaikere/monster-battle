@@ -1,6 +1,8 @@
+from typing import Literal
 import pygame
 from os.path import join 
 from os import walk
+
 
 WINDOW_WIDTH, WINDOW_HEIGHT = 1280,720 
 
@@ -45,3 +47,4 @@ ELEMENT_DATA = {
     'plant':  {'water': 2,   'plant': 1,   'fire': 0.5, 'normal': 1},
     'normal': {'water': 1,   'plant': 1,   'fire': 1,   'normal': 1},
 }
+
