@@ -17,6 +17,7 @@ class Game ():
         self.bg_images = folder_importer('assets', 'images', 'other')
         self.monsters_back = folder_importer('assets', 'images', 'back')
         self.monsters_front = folder_importer('assets', 'images', 'front')
+        self.monsters_minis = folder_importer('assets', 'images', 'simple')
 
         self.player_monster_list = sample(tuple(MONSTER_DATA.keys()), 6)
         self.player_monsters = [ Monster( name, self.monsters_back[name], bottomleft=(100, WINDOW_HEIGHT) ) for name in self.player_monster_list ]

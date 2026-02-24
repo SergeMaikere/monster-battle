@@ -1,4 +1,4 @@
-from typing import Literal
+from typing import Literal, TypedDict
 import pygame
 from os.path import join 
 from os import walk
@@ -48,3 +48,8 @@ ELEMENT_DATA = {
     'normal': {'water': 1,   'plant': 1,   'fire': 1,   'normal': 1},
 }
 
+State = Literal[ 'general', 'attack', 'switch' ]
+
+class RowCol ( TypedDict ):
+	row: int
+	col: int
