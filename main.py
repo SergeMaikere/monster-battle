@@ -18,13 +18,13 @@ class Game ():
         self.monsters_back = folder_importer('assets', 'images', 'back')
         self.monsters_front = folder_importer('assets', 'images', 'front')
 
-        self.player_monster_list = sample(tuple(MONSTER_DATA.keys()), 4)
+        self.player_monster_list = sample(tuple(MONSTER_DATA.keys()), 6)
         self.player_monsters = [ Monster( name, self.monsters_back[name], bottomleft=(100, WINDOW_HEIGHT) ) for name in self.player_monster_list ]
         
         self._player_monster = self.player_monsters[0]
         self._opponent_name = choice(tuple(MONSTER_DATA.keys()))
 
-        self.menu = Menus(self.player_monster)
+        self.menu = Menus(self.player_monster, self.player_monsters)
 
         self.running = True
 
