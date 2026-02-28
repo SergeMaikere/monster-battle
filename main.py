@@ -25,7 +25,7 @@ class Game ():
         self._player_monster = self.player_monsters[0]
         self._opponent_name = choice(tuple(MONSTER_DATA.keys()))
 
-        self.menu = Menus(self.player_monster, self.player_monsters, self.__get_monster_surface)
+        self.menu = Menus(self.player_monster, self.player_monsters, self.__get_monster_surface, self.__get_input)
 
         self.running = True
 
@@ -50,6 +50,9 @@ class Game ():
         self.opponent_monster = Opponent(self._opponent_name, self.monsters_front[self._opponent_name], self.all_sprites, midbottom=(WINDOW_WIDTH - 250, 300))
 
     def __get_monster_surface ( self, name: str ): return self.monsters_minis[name]
+
+    def __get_input ( self, state: State, data: str ):
+        print(state, data)
 
     def __set_background ( self ):
         self.canvas.blit(self.bg_images['bg'], (0, 0))

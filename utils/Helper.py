@@ -1,8 +1,14 @@
 from functools import reduce
 from pygame.surface import Surface
-from settings import * 
+from settings import *
+from utils.Errors import NoDisplaySurface 
 
 pipe = lambda *func: lambda arg: reduce( lambda g, f: f(g), func, arg )
+
+def get_canvas () -> Surface:
+    canvas = pygame.display.get_surface()
+    if not canvas: raise NoDisplaySurface()
+    return canvas
 
 def folder_importer(*path: str) -> dict[str, Surface]:
     surfs = {}

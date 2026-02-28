@@ -7,13 +7,12 @@ from gameobj.Menu import Menu
 
 
 class Menus:
-	def __init__( self, monster: Monster, player_monsters: list[Monster], get_monster_mini: Callable ) -> None:
-
-		self.canvas = pygame.display.get_surface()
+	def __init__( self, monster: Monster, player_monsters: list[Monster], get_monster_mini: Callable, get_input: Callable ) -> None:
 		
 		self.left = WINDOW_WIDTH/2 - 100
 		self.top = WINDOW_HEIGHT/2 + 50
 
+		self.get_input = get_input
 		self.monster = monster
 
 		self.state = 'general'
@@ -74,8 +73,14 @@ class Menus:
 		index['col'] = (index['col'] + int(keys[pygame.K_RIGHT]) - int(keys[pygame.K_LEFT]) ) % dimensions[1]
 
 	def __update_state ( self, keys: ScancodeWrapper, index: RowCol, dimensions: tuple[int, int], options: list[str] ):
-		if keys[pygame.K_SPACE]: self.state = options[ index['col'] + index['row'] * dimensions[1] ]
-		if keys[pygame.K_ESCAPE]: self.state = 'general'
+		if keys[pygame.K_SPACE]: 
+			data = options[ index['col'] + index['row'] * dimensions[1] ]
+			if data in ['attack', 'switch']: 
+				self.state = data
+			else:
+				self.get_input(self.state, options[ index['col'] + index['row'] * dimensions[1] ])
+				self.state = 'general'
+		
 
 	def __input ( self ):
 		keys = pygame.key.get_just_pressed()

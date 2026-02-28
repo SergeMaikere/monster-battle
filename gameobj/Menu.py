@@ -4,7 +4,7 @@ from settings import *
 from functools import partial
 from pygame import FRect, Surface
 from utils.Errors import NoDisplaySurface
-from utils.Helper import pipe
+from utils.Helper import get_canvas, pipe
 
 
 class Menu:
@@ -26,15 +26,13 @@ class Menu:
 		self.menu_index = menu_index
 		self.get_monster_surface = get_monster_surface
 
-		self.canvas = pygame.display.get_surface()
+		self.canvas = get_canvas()
 		self.font = pygame.font.Font(None, 30)
 		self.vertical_offset = 0
 
 	def __get_width_height ( self ): return ( self.rect.width / self.cols, self.rect.height / self.rows )
 
-	def __draw_menu_rect ( self ):
-		if not self.canvas: raise NoDisplaySurface()
-		
+	def __draw_menu_rect ( self ):		
 		pygame.draw.rect(self.canvas, COLORS['white'], self.rect, 0, 4)
 		pygame.draw.rect(self.canvas, COLORS['gray'], self.rect, 4, 4)
 
