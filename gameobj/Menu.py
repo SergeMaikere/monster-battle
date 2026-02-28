@@ -1,3 +1,4 @@
+from typing import Any, Callable
 from pygame.typing import ColorLike
 from settings import *
 from functools import partial
@@ -14,17 +15,22 @@ class Menu:
 		options: list[str], 
 		menu_index: RowCol, 
 		rows_cols: tuple[int, int], 
-		monsters_minis: dict[str, Surface] | None = None ) -> None:
+		get_monster_surface: Callable | None = None) -> None:
 
 		self.state = state
 		self.rect = rect
 		self.rows, self.cols = rows_cols
+		self.cell_width, self.cell_height = self.__get_width_height()
+
 		self.options = options
 		self.menu_index = menu_index
+		self.get_monster_surface = get_monster_surface
 
 		self.canvas = pygame.display.get_surface()
 		self.font = pygame.font.Font(None, 30)
 		self.vertical_offset = 0
+
+	def __get_width_height ( self ): return ( self.rect.width / self.cols, self.rect.height / self.rows )
 
 	def __draw_menu_rect ( self ):
 		if not self.canvas: raise NoDisplaySurface()
@@ -37,50 +43,69 @@ class Menu:
 		self.vertical_offset = 0 if self.menu_index['row'] < self.rows else -(self.menu_index['row'] - self.rows + 1) * (self.rect.height / self.rows)
 		return row_col
 
-	def __get_index ( self, row_col: tuple[int, int] ): 
-		row, col = row_col
-		return col + row * self.cols
-
-	def __get_text_pos ( self, row_col: tuple[int, int] ):
-		row, col = row_col
-		x = self.rect.left + self.rect.width / (self.cols * 2) + col * (self.rect.width / self.cols)
-		y = self.rect.top + self.rect.height / (self.rows * 2) + row * (self.rect.height / self.rows) + self.vertical_offset
-		return (x, y)
-
 	def __get_text_color ( self, row_col: tuple[int, int] ):
 		row, col = row_col
-		return COLORS['gray'] if row == self.menu_index['row'] and col == self.menu_index['col'] else COLORS['black']
+		return { 'color': COLORS['gray'] if row == self.menu_index['row'] and col == self.menu_index['col'] else COLORS['black'] }
 
-	def __get_text_surface ( self, color: ColorLike, index: int ):
-		return self.font.render(self.options[index], True, color)
+	def __get_text_surface ( self, index: int, menu_data: dict[str, Any] ):
+		return { 'text_surface': self.font.render(self.options[index], True, menu_data['color']) }
 
-	def __get_text_rect ( self, pos: tuple[float, float], text_surface: Surface ): 
-		text_rect = text_surface.get_frect(center=pos)
-		return ( text_surface, text_rect )
+	def __get_mini_surface ( self, index: int ): 
+		if not self.get_monster_surface: raise Exception('List of player monster missing')
+		return { 'mini_surface': self.get_monster_surface(self.options[index]) }
+		
+	def __get_cell_pos_x ( self, item: Literal['mini', 'text'] ):
+		if item == 'mini': return self.cell_width * 1/3
+		return self.cell_width * 2/3
+	
+	
+	def __get_item_position ( self, row_col: tuple[int, int], item: Literal['mini', 'text'], menu_data: dict[str, Any] ):
+		row, col = row_col
+		x = self.rect.left + self.__get_cell_pos_x(item)  + col * self.cell_width
+		y = self.rect.top + self.cell_height / 2 + row * self.cell_height + self.vertical_offset
+		return { **menu_data, 'pos': (x, y) }
 
-	def __get_text_surface_and_rect ( self, row_col: tuple[int, int] ):
-		pos = self.__get_text_pos(row_col)
-		color = self.__get_text_color(row_col)
-		return pipe(
+	def __get_text_rect ( self, menu_data: dict[str, Any] ):
+		return { **menu_data, 'text_rect': menu_data['text_surface'].get_frect(center=menu_data['pos']) }
+
+	def __get_mini_rect ( self, menu_data: dict[str, Any] ):
+		return { **menu_data, 'mini_rect': menu_data['mini_surface'].get_frect(center=menu_data['pos']) }
+
+
+	def __draw_menu_item ( self, item: Literal['mini', 'text'], menu_data: dict[str, Any] ):
+		if self.rect.collidepoint(menu_data['pos']):
+			if item == 'text': self.canvas.blit(menu_data['text_surface'], menu_data['text_rect'])
+			if item == 'mini': self.canvas.blit(menu_data['mini_surface'], menu_data['mini_rect'])
+
+	def __set_menu_text ( self, row_col: tuple[int, int], index: int ):
+		pipe(
 			self.__set_vertical_offset,
-			self.__get_index,
-			partial(self.__get_text_surface, color),
-			partial(self.__get_text_rect, pos)
-		)(row_col)
+			self.__get_text_color,
+			partial(self.__get_text_surface, index),
+			partial(self.__get_item_position, (row_col), 'text'),
+			self.__get_text_rect,
+			partial(self.__draw_menu_item, 'text')
+		)( (row_col) )
 
-	def __draw_menu_option ( self, text_surface: Surface, text_rect: FRect ):
-		if not self.canvas: raise NoDisplaySurface()
+	def __set_menu_pics ( self, row_col: tuple[int, int], index: int ):
+		pipe(
+			self.__get_mini_surface,
+			partial(self.__get_item_position, row_col, 'mini'),
+			self.__get_mini_rect,
+			partial(self.__draw_menu_item, 'mini')
+		)(index)
 
-		if self.rect.collidepoint(text_rect.center):
-			self.canvas.blit(text_surface, text_rect)
 
 	def __draw_menu_options ( self ):
+		i = 0
 		for row in range(self.rows if self.state != 'switch' else len(self.options)):
 			for col in range(self.cols):
-
-				text_surface, text_rect = self.__get_text_surface_and_rect((row, col))
-				self.__draw_menu_option(text_surface, text_rect)
+				if self.state == 'switch': self.__set_menu_pics((row, col), i)
+				self.__set_menu_text((row, col), i)
+				i += 1
 
 	def draw ( self ):
 		self.__draw_menu_rect()
 		self.__draw_menu_options()
+
+

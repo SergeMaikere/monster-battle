@@ -1,3 +1,4 @@
+from typing import Callable
 from settings import *
 from pygame import Surface
 from pygame.key import ScancodeWrapper
@@ -6,7 +7,7 @@ from gameobj.Menu import Menu
 
 
 class Menus:
-	def __init__( self, monster: Monster, player_monsters: list[Monster], monsters_minis: dict[str, Surface] ) -> None:
+	def __init__( self, monster: Monster, player_monsters: list[Monster], get_monster_mini: Callable ) -> None:
 
 		self.canvas = pygame.display.get_surface()
 		
@@ -14,30 +15,49 @@ class Menus:
 		self.top = WINDOW_HEIGHT/2 + 50
 
 		self.monster = monster
-		self.monsters_minis = monsters_minis
 
 		self.state = 'general'
 
 		self.general_options = [ 'attack', 'heal', 'switch', 'escape' ]
 		self.general_dimensions = (2, 2)
 		self.general_index: RowCol = self.__init_index()
-		self.general_menu = Menu( 'general', pygame.FRect(self.left, self.top, 400, 200), self.general_options, self.general_index, self.general_dimensions )
+		self.general_menu = Menu( 
+			'general', 
+			pygame.FRect(self.left, self.top, 400, 200), 
+			self.general_options, 
+			self.general_index, 
+			self.general_dimensions 
+		)
 
 		self.attack_options = self.monster.abilities
 		self.attack_dimensions = (2, 2)
 		self.attack_index: RowCol = self.__init_index()
-		self.attack_menu = Menu( 'attack', pygame.FRect(self.left, self.top, 400, 200), self.attack_options, self.attack_index, self.attack_dimensions )
+		self.attack_menu = Menu( 
+			'attack', 
+			pygame.FRect(self.left, self.top, 400, 200), 
+			self.attack_options, 
+			self.attack_index, 
+			self.attack_dimensions 
+		)
 
 		self.player_monsters = player_monsters
 		self.switch_options = self.__get_available_monsters()
 		self.switch_dimensions = (4, 1)
 		self.switch_index: RowCol = self.__init_index()
-		self.switch_menu = Menu( 'switch', pygame.FRect(self.left, self.top - 100, 400, 400), self.switch_options, self.switch_index, self.switch_dimensions )
+		self.switch_menu = Menu( 
+			'switch', 
+			pygame.FRect(self.left, self.top - 100, 400, 400),
+			self.switch_options, 
+			self.switch_index, 
+			self.switch_dimensions, 
+			get_monster_mini
+		)
 
 	
 	def __init_index ( self ) -> RowCol: return { 'row': 0, 'col': 0 }
 
-	def __get_available_monsters ( self ): return [ monster.name for monster in self.player_monsters if monster.name != self.monster.name and monster.health > 0 ]
+	def __get_available_monsters ( self ): 
+		return [ monster.name for monster in self.player_monsters if monster.name != self.monster.name and monster.health > 0 ]
 
 	def __get_menu_datas ( self ):
 		match self.state:
