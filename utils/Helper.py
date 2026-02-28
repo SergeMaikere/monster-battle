@@ -1,5 +1,8 @@
+from functools import reduce
 from pygame.surface import Surface
 from settings import * 
+
+pipe = lambda *func: lambda arg: reduce( lambda g, f: f(g), func, arg )
 
 def folder_importer(*path: str) -> dict[str, Surface]:
     surfs = {}
