@@ -1,3 +1,4 @@
+from typing import Union, cast, get_args
 from entities.Opponent import Opponent
 from entities.Monster import Monster
 from gameobj.Menus import Menus
@@ -35,7 +36,7 @@ class Game ():
 
     @player_monster.setter
     def player_monster ( self, monster: Monster ):
-        # self.remove_previous_monster('player')
+        self.remove_previous_monster('player')
         self.all_sprites.add(monster)
         self._player_monster = monster
 
@@ -49,10 +50,28 @@ class Game ():
         self._opponent_name = name
         self.opponent_monster = Opponent(self._opponent_name, self.monsters_front[self._opponent_name], self.all_sprites, midbottom=(WINDOW_WIDTH - 250, 300))
 
-    def __get_monster_surface ( self, name: str ): return self.monsters_minis[name]
+    def __get_monster_surface ( self, name: Monsters ): return self.monsters_minis[name]
 
-    def __get_input ( self, state: State, data: str ):
-        print(state, data)
+    def __apply_attack ( self, attack: Attacks ):
+        assert type(attack) == Attacks, 'Invalid attack'
+        print(attack)
+
+    def __switch_monster ( self, name: Monsters ):
+        self.player_monster = next(monster for monster in self.player_monsters if monster.name == name)
+        self.menu.monster = self.player_monster
+    
+    def __heal_monster ( self, name: Monsters ):
+        print(name)
+        return name
+
+    def __end_game ( self ): self.running = False
+
+    def __get_input ( self, state: State, data: Attacks | Monsters ):
+        if state == 'attack' and data in Attacks.__args__: return self.__apply_attack(cast(Attacks, data))
+        if state == 'switch' and data in Monsters.__args__: return self.__switch_monster(cast(Monsters, data))
+        if state == 'general' and data == 'heal': return self.__heal_monster(data)
+        if state == 'general' and data == 'escape': return self.__end_game()
+    
 
     def __set_background ( self ):
         self.canvas.blit(self.bg_images['bg'], (0, 0))

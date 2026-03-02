@@ -1,4 +1,4 @@
-from typing import Literal, TypedDict
+from typing import Literal, TypeVar, TypedDict
 import pygame
 from os.path import join 
 from os import walk
@@ -53,3 +53,29 @@ State = Literal[ 'general', 'attack', 'switch' ]
 class RowCol ( TypedDict ):
 	row: int
 	col: int
+
+class Table ( TypedDict ):
+	rows: int
+	cols: int
+
+
+Monsters = Literal[
+	'Plumette',    
+	'Ivieron',     
+	'Pluma',       
+	'Sparchu',     
+	'Cindrill',    
+	'Charmadillo', 
+	'Finsta',      
+	'Gulfin',      
+	'Finiette',    
+	'Atrox',       
+	'Pouch',       
+	'Draem',       
+	'Larvea',      
+	'Cleaf',       
+	'Jacana',      
+	'Friolera'    
+]
+
+Attacks = Literal[ 'scratch', 'spark', 'nuke', 'splash', 'shards', 'spiral' ]

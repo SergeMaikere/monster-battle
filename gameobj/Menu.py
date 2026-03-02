@@ -14,17 +14,19 @@ class Menu:
 		rect: FRect, 
 		options: list[str], 
 		menu_index: RowCol, 
-		rows_cols: tuple[int, int], 
+		rows_cols: Table, 
+		get_monster_list: Callable | None = None,
 		get_monster_surface: Callable | None = None) -> None:
 
 		self.state = state
 		self.rect = rect
-		self.rows, self.cols = rows_cols
+		self.rows, self.cols = rows_cols['rows'], rows_cols['cols']
 		self.cell_width, self.cell_height = self.__get_width_height()
 
 		self.options = options
 		self.menu_index = menu_index
 		self.get_monster_surface = get_monster_surface
+		self.get_monster_list = get_monster_list
 
 		self.canvas = get_canvas()
 		self.font = pygame.font.Font(None, 30)
@@ -98,7 +100,10 @@ class Menu:
 		i = 0
 		for row in range(self.rows if self.state != 'switch' else len(self.options)):
 			for col in range(self.cols):
-				if self.state == 'switch': self.__set_menu_pics((row, col), i)
+
+				if self.state == 'switch' and self.get_monster_list:
+					self.options = self.get_monster_list() 
+					self.__set_menu_pics((row, col), i)
 				self.__set_menu_text((row, col), i)
 				i += 1
 

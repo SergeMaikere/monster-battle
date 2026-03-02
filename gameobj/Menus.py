@@ -13,12 +13,12 @@ class Menus:
 		self.top = WINDOW_HEIGHT/2 + 50
 
 		self.get_input = get_input
-		self.monster = monster
+		self._monster = monster
 
 		self.state = 'general'
 
 		self.general_options = [ 'attack', 'heal', 'switch', 'escape' ]
-		self.general_dimensions = (2, 2)
+		self.general_dimensions = self.__set_table_dimensions(2, 2)
 		self.general_index: RowCol = self.__init_index()
 		self.general_menu = Menu( 
 			'general', 
@@ -29,7 +29,7 @@ class Menus:
 		)
 
 		self.attack_options = self.monster.abilities
-		self.attack_dimensions = (2, 2)
+		self.attack_dimensions = self.__set_table_dimensions(2, 2)
 		self.attack_index: RowCol = self.__init_index()
 		self.attack_menu = Menu( 
 			'attack', 
@@ -40,8 +40,8 @@ class Menus:
 		)
 
 		self.player_monsters = player_monsters
-		self.switch_options = self.__get_available_monsters()
-		self.switch_dimensions = (4, 1)
+		self.switch_options = self.set_available_monsters()
+		self.switch_dimensions = self.__set_table_dimensions(4, 1)
 		self.switch_index: RowCol = self.__init_index()
 		self.switch_menu = Menu( 
 			'switch', 
@@ -49,14 +49,28 @@ class Menus:
 			self.switch_options, 
 			self.switch_index, 
 			self.switch_dimensions, 
+			self.get_switch_options,
 			get_monster_mini
 		)
 
 	
+	@property
+	def monster ( self ): return self._monster
+
+	@monster.setter
+	def monster ( self, monster: Monster ):
+		self._monster = monster
+		self.switch_options = self.set_available_monsters()
+		print(self.monster.name, self.switch_options)
+
 	def __init_index ( self ) -> RowCol: return { 'row': 0, 'col': 0 }
 
-	def __get_available_monsters ( self ): 
+	def __set_table_dimensions ( self, rows: int, cols: int ) -> Table: return { 'rows': rows, 'cols': cols }
+
+	def set_available_monsters ( self ): 
 		return [ monster.name for monster in self.player_monsters if monster.name != self.monster.name and monster.health > 0 ]
+
+	def get_switch_options ( self ): return self.switch_options
 
 	def __get_menu_datas ( self ):
 		match self.state:
@@ -67,26 +81,26 @@ class Menus:
 	def __update_switch_index ( self, keys: ScancodeWrapper, index: RowCol, options: list[str] ):
 		index['row'] = (index['row'] + int(keys[pygame.K_DOWN]) - int(keys[pygame.K_UP]) ) % len(options)
 
-	def __update_index ( self, keys: ScancodeWrapper, index: RowCol, options: list[str], dimensions: tuple[int, int] ):
+	def __update_index ( self, keys: ScancodeWrapper, index: RowCol, options: list[str], table: Table ):
 		if self.state == 'switch': return self.__update_switch_index(keys, index, options)
-		index['row'] = (index['row'] + int(keys[pygame.K_DOWN]) - int(keys[pygame.K_UP]) ) % dimensions[0]
-		index['col'] = (index['col'] + int(keys[pygame.K_RIGHT]) - int(keys[pygame.K_LEFT]) ) % dimensions[1]
+		index['row'] = (index['row'] + int(keys[pygame.K_DOWN]) - int(keys[pygame.K_UP]) ) % table['rows']
+		index['col'] = (index['col'] + int(keys[pygame.K_RIGHT]) - int(keys[pygame.K_LEFT]) ) % table['cols']
 
-	def __update_state ( self, keys: ScancodeWrapper, index: RowCol, dimensions: tuple[int, int], options: list[str] ):
+	def __update_state ( self, keys: ScancodeWrapper, index: RowCol, table: Table, options: list[str] ):
 		if keys[pygame.K_SPACE]: 
-			data = options[ index['col'] + index['row'] * dimensions[1] ]
+			data = options[ index['col'] + index['row'] * table['cols'] ]
 			if data in ['attack', 'switch']: 
 				self.state = data
 			else:
-				self.get_input(self.state, options[ index['col'] + index['row'] * dimensions[1] ])
+				self.get_input(self.state, options[ index['col'] + index['row'] * table['cols'] ])
 				self.state = 'general'
 		
 
 	def __input ( self ):
 		keys = pygame.key.get_just_pressed()
-		index, dimensions, options = self.__get_menu_datas()
-		self.__update_index(keys, index, options, dimensions)
-		self.__update_state(keys, index, dimensions, options)
+		index, table, options = self.__get_menu_datas()
+		self.__update_index(keys, index, options, table)
+		self.__update_state(keys, index, table, options)
 
 	def update ( self ):
 		self.__input()
