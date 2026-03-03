@@ -4,6 +4,7 @@ from entities.Monster import Monster
 from gameobj.Menus import Menus
 from settings import *
 from utils.Helper import folder_importer, pipe
+from utils.Timer import Timer
 from random import sample, choice
 
 class Game ():
@@ -28,6 +29,9 @@ class Game ():
 
         self.menu = Menus(self.player_monster, self.player_monsters, self.__get_monster_surface, self.__get_input)
 
+        self.active = True
+        self.timers = { 'player_end': Timer(1000, self.opponent_turn), 'opponent_end': Timer(1000, self.player_turn) }
+
         self.running = True
 
     @property
@@ -50,19 +54,28 @@ class Game ():
         self._opponent_name = name
         self.opponent_monster = Opponent(self._opponent_name, self.monsters_front[self._opponent_name], self.all_sprites, midbottom=(WINDOW_WIDTH - 250, 300))
 
+    def __update_timers ( self ): 
+        for timer in self.timers.values():
+            timer.update() 
+
+    def player_turn ( self ):
+        self.active = True
+
+    def opponent_turn ( self ):
+        attack = choice(self.opponent_monster.abilities)
+        self.__apply_attack(self.player_monster, cast(Attacks, attack))
+        self.timers['opponent_end'].start()
+
     def __get_monster_surface ( self, name: Monsters ): return self.monsters_minis[name]
 
     def __get_ability_by_name ( self, attack: Attacks ): return ABILITIES_DATA[attack]
-
-    def __get_opponent_element ( self ): return MONSTER_DATA[self.opponent_name]['element']
     
     def __calculate_health_malus ( self, ability_data: Ability ) -> float: 
-        return ability_data['damage'] / ELEMENT_DATA[ability_data['element']][self.__get_opponent_element()]
+        return ability_data['damage'] / ELEMENT_DATA[ability_data['element']][MONSTER_DATA[self.opponent_name]['element']]
 
-    def __apply_attack ( self, attack: Attacks ):
-        print(self.opponent_monster.health)
+    def __apply_attack ( self, target: Monster | Opponent, attack: Attacks ):
         malus = pipe( self.__get_ability_by_name, self.__calculate_health_malus )(attack)
-        self.opponent_monster.health -= malus
+        target.health -= malus
         print(malus, self.opponent_monster.health)
 
     def __switch_monster ( self, name: Monsters ):
@@ -76,11 +89,21 @@ class Game ():
     def __end_game ( self ): self.running = False
 
     def __get_input ( self, state: State, data: Attacks | Monsters ):
-        if state == 'attack' and data in Attacks.__args__: return self.__apply_attack(cast(Attacks, data))
-        if state == 'switch' and data in Monsters.__args__: return self.__switch_monster(cast(Monsters, data))
-        if state == 'general' and data == 'heal': return self.__heal_monster(data)
-        if state == 'general' and data == 'escape': return self.__end_game()
-    
+        if state == 'attack' and data in Attacks.__args__: 
+            self.__apply_attack(self.opponent_monster, cast(Attacks, data))
+
+        elif state == 'switch' and data in Monsters.__args__: 
+            self.__switch_monster(cast(Monsters, data)) 
+
+        elif state == 'general' and data == 'heal': 
+            self.__heal_monster(data)
+
+        elif state == 'general' and data == 'escape': 
+            self.__end_game()
+
+        self.active = False
+        self.timers['player_end'].start()
+        
 
     def __set_background ( self ):
         self.canvas.blit(self.bg_images['bg'], (0, 0))
@@ -114,11 +137,12 @@ class Game ():
 
             self.__draw_monster_floor()
 
+            if self.active: self.menu.update()
+            self.__update_timers()
             self.all_sprites.update(dt)
 
             self.all_sprites.draw(self.canvas)
 
-            self.menu.update()
             self.menu.draw()
 
             pygame.display.update()

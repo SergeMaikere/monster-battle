@@ -21,7 +21,10 @@ class Timer:
 		self.start_time = 0
 		if self.repeat: self.start()
 
+	def autostart ( self, autostart: bool ):
+		if autostart and self.duration > 0: self.start()
+
 	def update ( self ):
 		if pygame.time.get_ticks() - self.start_time >= self.duration:
-			if self.func: self.func()
+			if self.func and self.start_time > 0: self.func()
 			self.stop()
