@@ -3,7 +3,7 @@ from entities.Opponent import Opponent
 from entities.Monster import Monster
 from gameobj.Menus import Menus
 from settings import *
-from utils.Helper import folder_importer
+from utils.Helper import folder_importer, pipe
 from random import sample, choice
 
 class Game ():
@@ -52,9 +52,18 @@ class Game ():
 
     def __get_monster_surface ( self, name: Monsters ): return self.monsters_minis[name]
 
+    def __get_ability_by_name ( self, attack: Attacks ): return ABILITIES_DATA[attack]
+
+    def __get_opponent_element ( self ): return MONSTER_DATA[self.opponent_name]['element']
+    
+    def __calculate_health_malus ( self, ability_data: Ability ) -> float: 
+        return ability_data['damage'] / ELEMENT_DATA[ability_data['element']][self.__get_opponent_element()]
+
     def __apply_attack ( self, attack: Attacks ):
-        assert type(attack) == Attacks, 'Invalid attack'
-        print(attack)
+        print(self.opponent_monster.health)
+        malus = pipe( self.__get_ability_by_name, self.__calculate_health_malus )(attack)
+        self.opponent_monster.health -= malus
+        print(malus, self.opponent_monster.health)
 
     def __switch_monster ( self, name: Monsters ):
         self.player_monster = next(monster for monster in self.player_monsters if monster.name == name)

@@ -57,7 +57,17 @@ class RowCol ( TypedDict ):
 class Table ( TypedDict ):
 	rows: int
 	cols: int
+ 
+class Ability ( TypedDict ):
+	damage: int
+	element: str
+	animation: str
 
+class Element ( TypedDict ):
+	water: int
+	plant: int
+	fire: int
+	normal: int
 
 Monsters = Literal[
 	'Plumette',    
