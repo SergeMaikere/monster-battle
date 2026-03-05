@@ -80,7 +80,6 @@ class Menus:
 
 	def __update_switch_index ( self, keys: ScancodeWrapper, options: list[str] ):
 		self.switch_index = ( self.switch_index + int(keys[pygame.K_DOWN]) - int(keys[pygame.K_UP]) ) % len(options)
-		print('menus', self.switch_index)
 
 	def __update_menu_index ( self, keys: ScancodeWrapper, index: RowCol, table: Table ):
 		index['row'] = (index['row'] + int(keys[pygame.K_DOWN]) - int(keys[pygame.K_UP]) ) % table['rows']

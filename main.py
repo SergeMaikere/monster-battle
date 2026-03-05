@@ -76,11 +76,13 @@ class Game ():
     def __apply_attack ( self, target: Monster | Opponent, attack: Attacks ):
         malus = pipe( self.__get_ability_by_name, self.__calculate_health_malus )(attack)
         target.health -= malus
-        print(target.name, self.opponent_monster.health)
+        # print(target.name, self.opponent_monster.health)
 
     def __switch_monster ( self, name: Monsters ):
         self.player_monster = next(monster for monster in self.player_monsters if monster.name == name)
-        self.menu.monster = self.player_monster
+        for sprite in self.all_sprites: print (sprite.name)
+
+        # self.menu.monster = self.player_monster
     
     def __heal_monster ( self ):
         self.player_monster.health += 20
@@ -114,10 +116,8 @@ class Game ():
             self.canvas.blit(self.bg_images['floor'], floor_rect)
 
     def remove_previous_monster ( self, trainer: Literal['player', 'opponent'] ):
-        old_monster_name = self.player_monster.name if trainer == 'player' else self.opponent_monster.name
-        for sprite in self.all_sprites:
-            if sprite.name == old_monster_name:
-                self.all_sprites.remove(sprite)
+        sprite = next((sprite for sprite in self.all_sprites if type(sprite) == (Monster if trainer == 'player' else Opponent)), None)
+        if sprite: self.all_sprites.remove(sprite)
 
     def __init_combattants ( self ):
         self.player_monster = self.player_monsters[0]
