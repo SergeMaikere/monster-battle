@@ -24,25 +24,27 @@ class Game ():
         self.player_monster_list = sample(tuple(MONSTER_DATA.keys()), 6)
         self.player_monsters = [ Monster( name, self.monsters_back[name], bottomleft=(100, WINDOW_HEIGHT) ) for name in self.player_monster_list ]
         
-        self._player_monster = self.player_monsters[0]
+        self.player_monster: Monster = self.player_monsters[0]
         self._opponent_name = choice(tuple(MONSTER_DATA.keys()))
 
-        self.menu = Menus(self.player_monster, self.player_monsters, self.__get_monster_surface, self.__get_input)
+        self.menu = Menus(self.player_monsters, self.get_player_monster,  self.__get_monster_surface, self.__get_input)
 
         self.active = True
         self.timers = { 'player_end': Timer(1000, self.opponent_turn), 'opponent_end': Timer(1000, self.player_turn) }
 
         self.running = True
 
-    @property
-    def player_monster ( self ):
-        return self._player_monster
 
-    @player_monster.setter
-    def player_monster ( self, monster: Monster ):
+    def get_player_monster ( self ) -> Monster: return self.player_monster
+   
+    def remove_previous_monster ( self, trainer: Literal['player', 'opponent'] ):
+        sprite = next((sprite for sprite in self.all_sprites if type(sprite) == (Monster if trainer == 'player' else Opponent)), None)
+        if sprite: self.all_sprites.remove(sprite)
+
+    def set_player_monster ( self, monster: Monster ):
         self.remove_previous_monster('player')
         self.all_sprites.add(monster)
-        self._player_monster = monster
+        self.player_monster = monster
 
     @property
     def opponent_name ( self ):
@@ -79,10 +81,8 @@ class Game ():
         # print(target.name, self.opponent_monster.health)
 
     def __switch_monster ( self, name: Monsters ):
-        self.player_monster = next(monster for monster in self.player_monsters if monster.name == name)
-        for sprite in self.all_sprites: print (sprite.name)
-
-        # self.menu.monster = self.player_monster
+        monster = next(monster for monster in self.player_monsters if monster.name == name)
+        self.set_player_monster(monster)
     
     def __heal_monster ( self ):
         self.player_monster.health += 20
@@ -115,12 +115,9 @@ class Game ():
             floor_rect = self.bg_images['floor'].get_frect(center=monster.rect.midbottom + pygame.Vector2(0, -10))
             self.canvas.blit(self.bg_images['floor'], floor_rect)
 
-    def remove_previous_monster ( self, trainer: Literal['player', 'opponent'] ):
-        sprite = next((sprite for sprite in self.all_sprites if type(sprite) == (Monster if trainer == 'player' else Opponent)), None)
-        if sprite: self.all_sprites.remove(sprite)
 
     def __init_combattants ( self ):
-        self.player_monster = self.player_monsters[0]
+        self.set_player_monster(self.player_monsters[0])
         self.opponent_name = self.opponent_name
 
     def run ( self ):

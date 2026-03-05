@@ -8,13 +8,14 @@ from gameobj.SwitchMenu import SwitchMenu
 
 
 class Menus:
-	def __init__( self, monster: Monster, player_monsters: list[Monster], get_monster_mini: Callable, get_input: Callable ) -> None:
+	def __init__( self, player_monsters: list[Monster], get_player_monster: Callable, get_monster_mini: Callable, get_input: Callable ) -> None:
 		
 		self.left = WINDOW_WIDTH/2 - 100
 		self.top = WINDOW_HEIGHT/2 + 50
 
 		self.get_input = get_input
-		self._monster = monster
+		self.get_player_monster = get_player_monster
+		self.monster = self.get_player_monster()
 
 		self.state = 'general'
 
@@ -47,7 +48,6 @@ class Menus:
 		self.switch_menu = SwitchMenu( 
 			'switch', 
 			pygame.FRect(self.left, self.top - 100, 400, 400),
-			self.switch_options, 
 			self.get_switch_index,
 			self.switch_dimensions, 
 			self.set_available_monsters,
@@ -55,20 +55,14 @@ class Menus:
 		)
 
 	
-	@property
-	def monster ( self ): return self._monster
-
-	@monster.setter
-	def monster ( self, monster: Monster ):
-		self._monster = monster
-		self.switch_options = self.set_available_monsters()
 
 	def __init_index ( self ) -> RowCol: return { 'row': 0, 'col': 0 }
 
 	def __set_table_dimensions ( self, rows: int, cols: int ) -> Table: return { 'rows': rows, 'cols': cols }
 
 	def set_available_monsters ( self ): 
-		return [ monster.name for monster in self.player_monsters if monster.name != self.monster.name and monster.health > 0 ]
+		current_monster = self.get_player_monster()
+		return [ monster.name for monster in self.player_monsters if monster.name != current_monster.name and monster.health > 0 ]
 
 	def get_switch_index ( self ): return self.switch_index
 
@@ -102,6 +96,11 @@ class Menus:
 		if keys[pygame.K_SPACE]: 
 			if self.state == 'switch': 
 				self.get_input(self.state, options[cast(int, index)])
+				print(self.monster.name, self.switch_options)
+				self.monster = self.get_player_monster()
+				self.switch_options = self.set_available_monsters()
+				print( self.monster.name, self.switch_options)
+				print( [monster.name for monster in self.player_monsters] )
 				self.state = 'general'
 			else: 
 				self.__update_menu_state(cast(RowCol, index), table, options)

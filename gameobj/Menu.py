@@ -40,7 +40,7 @@ class Menu:
 		return { 'text_surface': self.font.render(self.options[index], True, menu_data['color']) }
 	
 	
-	def __get_item_position ( self, row_col: tuple[int, int], item: Literal['mini', 'text'], menu_data: dict[str, Any] ):
+	def __get_item_position ( self, row_col: tuple[int, int], menu_data: dict[str, Any] ):
 		row, col = row_col
 		x = self.rect.left + self.cell_width / 2 + col * self.cell_width
 		y = self.rect.top + self.cell_height / 2 + row * self.cell_height
@@ -50,18 +50,17 @@ class Menu:
 		return { **menu_data, 'text_rect': menu_data['text_surface'].get_frect(center=menu_data['pos']) }
 
 
-	def __draw_menu_item ( self, item: Literal['mini', 'text'], menu_data: dict[str, Any] ):
+	def __draw_menu_item ( self, menu_data: dict[str, Any] ):
 		if self.rect.collidepoint(menu_data['pos']):
-			if item == 'text': self.canvas.blit(menu_data['text_surface'], menu_data['text_rect'])
-			if item == 'mini': self.canvas.blit(menu_data['mini_surface'], menu_data['mini_rect'])
+			self.canvas.blit(menu_data['text_surface'], menu_data['text_rect'])
 
 	def __set_menu_text ( self, row_col: tuple[int, int], index: int ):
 		pipe(
 			self.__get_text_color,
 			partial(self.__get_text_surface, index),
-			partial(self.__get_item_position, (row_col), 'text'),
+			partial(self.__get_item_position, (row_col)),
 			self.__get_text_rect,
-			partial(self.__draw_menu_item, 'text')
+			self.__draw_menu_item
 		)( (row_col) )
 
 
