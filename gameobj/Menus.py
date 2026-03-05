@@ -1,9 +1,10 @@
-from typing import Callable
+from typing import Callable, cast
 from settings import *
 from pygame import Surface
 from pygame.key import ScancodeWrapper
 from entities.Monster import Monster
 from gameobj.Menu import Menu
+from gameobj.SwitchMenu import SwitchMenu
 
 
 class Menus:
@@ -41,15 +42,15 @@ class Menus:
 
 		self.player_monsters = player_monsters
 		self.switch_options = self.set_available_monsters()
+		self.switch_index = 0
 		self.switch_dimensions = self.__set_table_dimensions(4, 1)
-		self.switch_index: RowCol = self.__init_index()
-		self.switch_menu = Menu( 
+		self.switch_menu = SwitchMenu( 
 			'switch', 
 			pygame.FRect(self.left, self.top - 100, 400, 400),
 			self.switch_options, 
-			self.switch_index, 
+			self.get_switch_index,
 			self.switch_dimensions, 
-			self.get_switch_options,
+			self.set_available_monsters,
 			get_monster_mini
 		)
 
@@ -61,7 +62,6 @@ class Menus:
 	def monster ( self, monster: Monster ):
 		self._monster = monster
 		self.switch_options = self.set_available_monsters()
-		print(self.monster.name, self.switch_options)
 
 	def __init_index ( self ) -> RowCol: return { 'row': 0, 'col': 0 }
 
@@ -70,7 +70,7 @@ class Menus:
 	def set_available_monsters ( self ): 
 		return [ monster.name for monster in self.player_monsters if monster.name != self.monster.name and monster.health > 0 ]
 
-	def get_switch_options ( self ): return self.switch_options
+	def get_switch_index ( self ): return self.switch_index
 
 	def __get_menu_datas ( self ):
 		match self.state:
@@ -78,22 +78,34 @@ class Menus:
 			case 'switch': return (self.switch_index, self.switch_dimensions, self.switch_options)
 			case _: return (self.general_index, self.general_dimensions, self.general_options)
 
-	def __update_switch_index ( self, keys: ScancodeWrapper, index: RowCol, options: list[str] ):
-		index['row'] = (index['row'] + int(keys[pygame.K_DOWN]) - int(keys[pygame.K_UP]) ) % len(options)
+	def __update_switch_index ( self, keys: ScancodeWrapper, options: list[str] ):
+		self.switch_index = ( self.switch_index + int(keys[pygame.K_DOWN]) - int(keys[pygame.K_UP]) ) % len(options)
+		print('menus', self.switch_index)
 
-	def __update_index ( self, keys: ScancodeWrapper, index: RowCol, options: list[str], table: Table ):
-		if self.state == 'switch': return self.__update_switch_index(keys, index, options)
+	def __update_menu_index ( self, keys: ScancodeWrapper, index: RowCol, table: Table ):
 		index['row'] = (index['row'] + int(keys[pygame.K_DOWN]) - int(keys[pygame.K_UP]) ) % table['rows']
 		index['col'] = (index['col'] + int(keys[pygame.K_RIGHT]) - int(keys[pygame.K_LEFT]) ) % table['cols']
 
-	def __update_state ( self, keys: ScancodeWrapper, index: RowCol, table: Table, options: list[str] ):
+	def __update_index ( self, keys: ScancodeWrapper, index: RowCol | int , options: list[str], table: Table ):
+		if self.state == 'switch': return self.__update_switch_index(keys, options)
+		return self.__update_menu_index(keys, cast(RowCol, index), table)
+	
+	def __update_menu_state ( self, index: RowCol, table: Table, options: list[str] ):
+		data = options[ index['col'] + index['row'] * table['cols'] ]
+		if data in ['attack', 'switch']: 
+			self.state = data
+		else:
+			self.get_input(self.state, options[ index['col'] + index['row'] * table['cols'] ])
+			self.state = 'general'
+
+
+	def __update_state ( self, keys: ScancodeWrapper, index: RowCol | int, table: Table, options: list[str] ):
 		if keys[pygame.K_SPACE]: 
-			data = options[ index['col'] + index['row'] * table['cols'] ]
-			if data in ['attack', 'switch']: 
-				self.state = data
-			else:
-				self.get_input(self.state, options[ index['col'] + index['row'] * table['cols'] ])
+			if self.state == 'switch': 
+				self.get_input(self.state, options[cast(int, index)])
 				self.state = 'general'
+			else: 
+				self.__update_menu_state(cast(RowCol, index), table, options)
 		
 
 	def __input ( self ):

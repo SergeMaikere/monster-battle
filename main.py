@@ -76,15 +76,15 @@ class Game ():
     def __apply_attack ( self, target: Monster | Opponent, attack: Attacks ):
         malus = pipe( self.__get_ability_by_name, self.__calculate_health_malus )(attack)
         target.health -= malus
-        print(malus, self.opponent_monster.health)
+        print(target.name, self.opponent_monster.health)
 
     def __switch_monster ( self, name: Monsters ):
         self.player_monster = next(monster for monster in self.player_monsters if monster.name == name)
         self.menu.monster = self.player_monster
     
-    def __heal_monster ( self, name: Monsters ):
-        print(name)
-        return name
+    def __heal_monster ( self ):
+        self.player_monster.health += 20
+        print('Player', self.player_monster.health)
 
     def __end_game ( self ): self.running = False
 
@@ -96,7 +96,7 @@ class Game ():
             self.__switch_monster(cast(Monsters, data)) 
 
         elif state == 'general' and data == 'heal': 
-            self.__heal_monster(data)
+            self.__heal_monster()
 
         elif state == 'general' and data == 'escape': 
             self.__end_game()

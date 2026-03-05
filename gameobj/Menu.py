@@ -1,9 +1,7 @@
 from typing import Any, Callable
-from pygame.typing import ColorLike
 from settings import *
 from functools import partial
-from pygame import FRect, Surface
-from utils.Errors import NoDisplaySurface
+from pygame import FRect
 from utils.Helper import get_canvas, pipe
 
 
