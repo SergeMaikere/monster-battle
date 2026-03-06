@@ -15,8 +15,12 @@ class Menus:
 		self.rect = pygame.FRect(self.left, self.top, 400, 200)
 
 		self.monster_manager = monster_manager
-		self.infos_player = I.Infos('player', self.left, self.top, self.monster_manager)
-		self.infos_opp = I.Infos('opponent', WINDOW_WIDTH - 250, WINDOW_HEIGHT/2 + 10, self.monster_manager)
+		self.infos_player = I.Infos('player', pygame.FRect(self.left -20, self.top -60, 250, 80), self.monster_manager)
+		self.infos_opp = I.Infos(
+			'opponent', 
+			pygame.FRect(0, 0, 250, 80).move_to(midleft=(600, monster_manager.opponent_monster.rect.centery)), 
+			self.monster_manager
+		)
 
 		self.get_input = get_input
 

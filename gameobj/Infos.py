@@ -1,21 +1,18 @@
 from pygame import FRect
-from entities import Opponent as O, Monster as M
 from settings import *
 from utils.Helper import get_canvas
 from utils.MonsterManager import MonsterManager
 
 class Infos:
-	def __init__(self, subject: Literal['player', 'opponent'], left: float, top: float, monster_manager: MonsterManager) -> None:
+	def __init__(self, subject: Literal['player', 'opponent'], rect: FRect, monster_manager: MonsterManager) -> None:
 		
 		self.subject = subject
-		self.left = left
-		self.top = top
 		self.monster_manager = monster_manager
 
 		self.canvas = get_canvas()
 		self.font = pygame.font.Font(None, 30)
 
-		self.info_rect = pygame.FRect(self.left -20, self.top -60, 250, 80)
+		self.info_rect = rect
 
 
 	def __get_monster ( self ): return self.monster_manager.player_monster if self.subject == 'player' else self.monster_manager.opponent_monster
