@@ -1,4 +1,4 @@
-from typing import Any, Callable
+from typing import Any
 from settings import *
 from functools import partial
 from pygame import FRect
@@ -8,13 +8,11 @@ from utils.Helper import get_canvas, pipe
 class Menu:
 	def __init__( 
 		self, 
-		state: State, 
 		rect: FRect, 
 		options: list[str], 
 		menu_index: RowCol, 
 		rows_cols: Table ) -> None:
 
-		self.state = state
 		self.rect = rect
 		self.rows, self.cols = rows_cols['rows'], rows_cols['cols']
 		self.cell_width, self.cell_height = self.__get_width_height()

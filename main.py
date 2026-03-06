@@ -1,11 +1,10 @@
-from typing import Union, cast, get_args
-from entities.Opponent import Opponent
-from entities.Monster import Monster
-from gameobj.Menus import Menus
 from settings import *
-from utils.Helper import folder_importer, pipe
+from typing import cast
+from gameobj.Menus import Menus
+from utils.Helper import folder_importer
+from utils.MonsterManager import MonsterManager
 from utils.Timer import Timer
-from random import sample, choice
+from random import choice
 
 class Game ():
     def __init__(self) -> None:
@@ -17,44 +16,16 @@ class Game ():
         self.all_sprites = pygame.sprite.Group()
 
         self.bg_images = folder_importer('assets', 'images', 'other')
-        self.monsters_back = folder_importer('assets', 'images', 'back')
-        self.monsters_front = folder_importer('assets', 'images', 'front')
-        self.monsters_minis = folder_importer('assets', 'images', 'simple')
+   
+        self.monster_manager = MonsterManager(self.all_sprites)
 
-        self.player_monster_list = sample(tuple(MONSTER_DATA.keys()), 6)
-        self.player_monsters = [ Monster( name, self.monsters_back[name], bottomleft=(100, WINDOW_HEIGHT) ) for name in self.player_monster_list ]
-        
-        self.player_monster: Monster = self.player_monsters[0]
-        self._opponent_name = choice(tuple(MONSTER_DATA.keys()))
+        self.menu = Menus(self.monster_manager, self.__get_input)
 
-        self.menu = Menus(self.player_monsters, self.get_player_monster,  self.__get_monster_surface, self.__get_input)
-
-        self.active = True
         self.timers = { 'player_end': Timer(1000, self.opponent_turn), 'opponent_end': Timer(1000, self.player_turn) }
+        self.active = True
 
         self.running = True
 
-
-    def get_player_monster ( self ) -> Monster: return self.player_monster
-   
-    def remove_previous_monster ( self, trainer: Literal['player', 'opponent'] ):
-        sprite = next((sprite for sprite in self.all_sprites if type(sprite) == (Monster if trainer == 'player' else Opponent)), None)
-        if sprite: self.all_sprites.remove(sprite)
-
-    def set_player_monster ( self, monster: Monster ):
-        self.remove_previous_monster('player')
-        self.all_sprites.add(monster)
-        self.player_monster = monster
-
-    @property
-    def opponent_name ( self ):
-        return self._opponent_name
-
-    @opponent_name.setter
-    def opponent_name ( self, name: str ):
-        # self.remove_previous_monster('opponent')
-        self._opponent_name = name
-        self.opponent_monster = Opponent(self._opponent_name, self.monsters_front[self._opponent_name], self.all_sprites, midbottom=(WINDOW_WIDTH - 250, 300))
 
     def __update_timers ( self ): 
         for timer in self.timers.values():
@@ -64,44 +35,22 @@ class Game ():
         self.active = True
 
     def opponent_turn ( self ):
-        attack = choice(self.opponent_monster.abilities)
-        self.__apply_attack(self.player_monster, cast(Attacks, attack))
+        attack = choice(self.monster_manager.opponent_monster.abilities)
+        self.monster_manager.apply_attack(self.monster_manager.player_monster, cast(Attacks, attack))
         self.timers['opponent_end'].start()
-
-    def __get_monster_surface ( self, name: Monsters ): return self.monsters_minis[name]
-
-    def __get_ability_by_name ( self, attack: Attacks ): return ABILITIES_DATA[attack]
-    
-    def __calculate_health_malus ( self, ability_data: Ability ) -> float: 
-        return ability_data['damage'] / ELEMENT_DATA[ability_data['element']][MONSTER_DATA[self.opponent_name]['element']]
-
-    def __apply_attack ( self, target: Monster | Opponent, attack: Attacks ):
-        malus = pipe( self.__get_ability_by_name, self.__calculate_health_malus )(attack)
-        target.health -= malus
-        # print(target.name, self.opponent_monster.health)
-
-    def __switch_monster ( self, name: Monsters ):
-        monster = next(monster for monster in self.player_monsters if monster.name == name)
-        self.set_player_monster(monster)
-    
-    def __heal_monster ( self ):
-        self.player_monster.health += 20
-        print('Player', self.player_monster.health)
 
     def __end_game ( self ): self.running = False
 
     def __get_input ( self, state: State, data: Attacks | Monsters ):
+        if state == 'general' and data == 'heal': self.monster_manager.heal_monster()
+
+        if state == 'general' and data == 'escape': self.__end_game()
+        
         if state == 'attack' and data in Attacks.__args__: 
-            self.__apply_attack(self.opponent_monster, cast(Attacks, data))
+            self.monster_manager.apply_attack(self.monster_manager.opponent_monster, cast(Attacks, data))
 
-        elif state == 'switch' and data in Monsters.__args__: 
-            self.__switch_monster(cast(Monsters, data)) 
-
-        elif state == 'general' and data == 'heal': 
-            self.__heal_monster()
-
-        elif state == 'general' and data == 'escape': 
-            self.__end_game()
+        if state == 'switch' and data in Monsters.__args__: 
+            self.monster_manager.switch_monster(cast(Monsters, data)) 
 
         self.active = False
         self.timers['player_end'].start()
@@ -117,8 +66,7 @@ class Game ():
 
 
     def __init_combattants ( self ):
-        self.set_player_monster(self.player_monsters[0])
-        self.opponent_name = self.opponent_name
+        self.monster_manager.init_player_monster()
 
     def run ( self ):
 
@@ -139,7 +87,6 @@ class Game ():
             self.all_sprites.update(dt)
 
             self.all_sprites.draw(self.canvas)
-
             self.menu.draw()
 
             pygame.display.update()

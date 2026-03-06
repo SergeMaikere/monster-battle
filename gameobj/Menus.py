@@ -1,21 +1,20 @@
-from typing import Callable, cast
 from settings import *
-from pygame import Surface
+from typing import Callable, cast
 from pygame.key import ScancodeWrapper
-from entities.Monster import Monster
 from gameobj.Menu import Menu
 from gameobj.SwitchMenu import SwitchMenu
+from utils.MonsterManager import MonsterManager
 
 
 class Menus:
-	def __init__( self, player_monsters: list[Monster], get_player_monster: Callable, get_monster_mini: Callable, get_input: Callable ) -> None:
+	def __init__( self, monster_manager: MonsterManager, get_input: Callable ) -> None:
 		
 		self.left = WINDOW_WIDTH/2 - 100
 		self.top = WINDOW_HEIGHT/2 + 50
 
+		self.monster_manager = monster_manager
+
 		self.get_input = get_input
-		self.get_player_monster = get_player_monster
-		self.monster = self.get_player_monster()
 
 		self.state = 'general'
 
@@ -23,35 +22,28 @@ class Menus:
 		self.general_dimensions = self.__set_table_dimensions(2, 2)
 		self.general_index: RowCol = self.__init_index()
 		self.general_menu = Menu( 
-			'general', 
 			pygame.FRect(self.left, self.top, 400, 200), 
 			self.general_options, 
 			self.general_index, 
 			self.general_dimensions 
 		)
 
-		self.attack_options = self.monster.abilities
 		self.attack_dimensions = self.__set_table_dimensions(2, 2)
 		self.attack_index: RowCol = self.__init_index()
 		self.attack_menu = Menu( 
-			'attack', 
-			pygame.FRect(self.left, self.top, 400, 200), 
-			self.attack_options, 
+			pygame.FRect(self.left, self.top, 400, 200),
+			self.monster_manager.player_monster.abilities,
 			self.attack_index, 
 			self.attack_dimensions 
 		)
 
-		self.player_monsters = player_monsters
-		self.switch_options = self.set_available_monsters()
 		self.switch_index = 0
 		self.switch_dimensions = self.__set_table_dimensions(4, 1)
 		self.switch_menu = SwitchMenu( 
-			'switch', 
 			pygame.FRect(self.left, self.top - 100, 400, 400),
+			monster_manager,
 			self.get_switch_index,
 			self.switch_dimensions, 
-			self.set_available_monsters,
-			get_monster_mini
 		)
 
 	
@@ -60,16 +52,15 @@ class Menus:
 
 	def __set_table_dimensions ( self, rows: int, cols: int ) -> Table: return { 'rows': rows, 'cols': cols }
 
-	def set_available_monsters ( self ): 
-		current_monster = self.get_player_monster()
-		return [ monster.name for monster in self.player_monsters if monster.name != current_monster.name and monster.health > 0 ]
+	# def set_available_monsters ( self ): 
+	# 	return [ monster.name for monster in self.player_monsters if monster.name != current_monster.name and monster.health > 0 ]
 
 	def get_switch_index ( self ): return self.switch_index
 
 	def __get_menu_datas ( self ):
 		match self.state:
-			case 'attack': return (self.attack_index, self.attack_dimensions, self.attack_options)
-			case 'switch': return (self.switch_index, self.switch_dimensions, self.switch_options)
+			case 'attack': return (self.attack_index, self.attack_dimensions, self.monster_manager.player_monster.abilities)
+			case 'switch': return (self.switch_index, self.switch_dimensions, self.monster_manager.get_avilable_monsters())
 			case _: return (self.general_index, self.general_dimensions, self.general_options)
 
 	def __update_switch_index ( self, keys: ScancodeWrapper, options: list[str] ):
@@ -96,11 +87,6 @@ class Menus:
 		if keys[pygame.K_SPACE]: 
 			if self.state == 'switch': 
 				self.get_input(self.state, options[cast(int, index)])
-				print(self.monster.name, self.switch_options)
-				self.monster = self.get_player_monster()
-				self.switch_options = self.set_available_monsters()
-				print( self.monster.name, self.switch_options)
-				print( [monster.name for monster in self.player_monsters] )
 				self.state = 'general'
 			else: 
 				self.__update_menu_state(cast(RowCol, index), table, options)

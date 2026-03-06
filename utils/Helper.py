@@ -1,6 +1,6 @@
+from settings import *
 from functools import reduce
 from pygame.surface import Surface
-from settings import *
 from utils.Errors import NoDisplaySurface 
 
 pipe = lambda *func: lambda arg: reduce( lambda g, f: f(g), func, arg )
