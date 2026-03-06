@@ -71,5 +71,5 @@ class MonsterManager:
         target.health -= malus
         print(f'{target.name} -> {attack} -{malus} MAX HEALTH: {target.max_health} CURRENT HEALTH: {target.health}')
     
-    def heal_monster ( self ): self.player_monster.health += 20
+    def heal_monster ( self ): self.player_monster.health += 50
 
