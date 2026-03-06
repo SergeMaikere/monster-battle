@@ -9,12 +9,15 @@ from utils.MonsterManager import MonsterManager
 
 class Menus:
 	def __init__( self, monster_manager: MonsterManager, get_input: Callable ) -> None:
-		
+	
 		self.left = WINDOW_WIDTH/2 - 100
 		self.top = WINDOW_HEIGHT/2 + 50
+		self.rect = pygame.FRect(self.left, self.top, 400, 200)
 
 		self.monster_manager = monster_manager
-		self.infos = I.Infos('player', pygame.FRect(self.left, self.top, 400, 200), self.monster_manager)
+		self.infos_player = I.Infos('player', self.left, self.top, self.monster_manager)
+		self.infos_opp = I.Infos('opponent', WINDOW_WIDTH - 250, WINDOW_HEIGHT/2 + 10, self.monster_manager)
+
 		self.get_input = get_input
 
 		self.state = 'general'
@@ -23,7 +26,7 @@ class Menus:
 		self.general_dimensions = self.__set_table_dimensions(2, 2)
 		self.general_index: RowCol = self.__init_index()
 		self.general_menu = Menu( 
-			pygame.FRect(self.left, self.top, 400, 200), 
+			self.rect, 
 			self.general_options, 
 			self.general_index, 
 			self.general_dimensions 
@@ -32,7 +35,7 @@ class Menus:
 		self.attack_dimensions = self.__set_table_dimensions(2, 2)
 		self.attack_index: RowCol = self.__init_index()
 		self.attack_menu = Menu( 
-			pygame.FRect(self.left, self.top, 400, 200),
+			self.rect,
 			self.monster_manager.player_monster.abilities,
 			self.attack_index, 
 			self.attack_dimensions 
@@ -105,4 +108,6 @@ class Menus:
 			case 'attack': self.attack_menu.draw()
 			case 'switch': self.switch_menu.draw()
 
-		if self.state != 'switch': self.infos.draw()
+		if self.state != 'switch': 
+			self.infos_opp.draw()
+			self.infos_player.draw()
