@@ -1,3 +1,4 @@
+from gameobj import Infos as I
 from settings import *
 from typing import Callable, cast
 from pygame.key import ScancodeWrapper
@@ -13,7 +14,7 @@ class Menus:
 		self.top = WINDOW_HEIGHT/2 + 50
 
 		self.monster_manager = monster_manager
-
+		self.infos = I.Infos('player', pygame.FRect(self.left, self.top, 400, 200), self.monster_manager)
 		self.get_input = get_input
 
 		self.state = 'general'
@@ -51,9 +52,6 @@ class Menus:
 	def __init_index ( self ) -> RowCol: return { 'row': 0, 'col': 0 }
 
 	def __set_table_dimensions ( self, rows: int, cols: int ) -> Table: return { 'rows': rows, 'cols': cols }
-
-	# def set_available_monsters ( self ): 
-	# 	return [ monster.name for monster in self.player_monsters if monster.name != current_monster.name and monster.health > 0 ]
 
 	def get_switch_index ( self ): return self.switch_index
 
@@ -106,3 +104,5 @@ class Menus:
 			case 'general': self.general_menu.draw()
 			case 'attack': self.attack_menu.draw()
 			case 'switch': self.switch_menu.draw()
+
+		if self.state != 'switch': self.infos.draw()

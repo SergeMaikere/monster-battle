@@ -43,9 +43,8 @@ class Game ():
 
     def __get_input ( self, state: State, data: Attacks | Monsters ):
         if state == 'general' and data == 'heal': self.monster_manager.heal_monster()
-
         if state == 'general' and data == 'escape': self.__end_game()
-        
+
         if state == 'attack' and data in Attacks.__args__: 
             self.monster_manager.apply_attack(self.monster_manager.opponent_monster, cast(Attacks, data))
 

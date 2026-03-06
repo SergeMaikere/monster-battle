@@ -1,3 +1,4 @@
+from functools import partial
 from settings import *
 from pygame.sprite import Group
 from random import choice, sample
@@ -38,10 +39,6 @@ class MonsterManager:
         else:
             raise ValueError('Invalid Monster Name')
 
-    def __get_ability_by_name ( self, attack: Attacks ): return ABILITIES_DATA[attack]
-    
-    def __calculate_health_malus ( self, ability_data: Ability ) -> float: 
-        return ability_data['damage'] / ELEMENT_DATA[ability_data['element']][MONSTER_DATA[self.opponent_name]['element']]
 
     def init_player_monster ( self ): self.all_sprites.add(self.player_monster)
 
@@ -63,11 +60,16 @@ class MonsterManager:
     def switch_monster ( self, name: Monsters ):
         monster = next(monster for monster in self.player_monsters if monster.name == name)
         self.set_player_monster(monster)
+    
+    def __get_ability_datas_by_name ( self, attack: Attacks ): return ABILITIES_DATA[attack]
+    
+    def __calculate_health_malus ( self, target: Monster | Opponent, ability_data: Ability ) -> float: 
+        return ability_data['damage'] * ELEMENT_DATA[ability_data['element']][MONSTER_DATA[target.name]['element']]
 
     def apply_attack ( self, target: Monster | Opponent, attack: Attacks ):
-        malus = pipe( self.__get_ability_by_name, self.__calculate_health_malus )(attack)
+        malus = pipe( self.__get_ability_datas_by_name, partial(self.__calculate_health_malus, target) )(attack)
         target.health -= malus
-        # print(target.name, self.opponent_monster.health)
+        print(f'{target.name} -> {attack} -{malus} MAX HEALTH: {target.max_health} CURRENT HEALTH: {target.health}')
     
     def heal_monster ( self ): self.player_monster.health += 20
 
