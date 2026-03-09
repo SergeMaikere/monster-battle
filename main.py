@@ -1,12 +1,12 @@
+from settings import *
+from random import choice
 from entities.Creatures import Creature
 from gameobj import AttackAnimation as a
-from settings import *
 from typing import cast
 from gameobj.Menus import Menus
-from utils.Helper import folder_importer, tile_importer
+from utils.Helper import audio_importer, folder_importer, tile_importer
 from utils.MonsterManager import MonsterManager
 from utils.Timer import Timer
-from random import choice
 
 class Game ():
     def __init__(self) -> None:
@@ -19,12 +19,13 @@ class Game ():
 
         self.bg_images = folder_importer('assets', 'images', 'other')
         self.attack_animations = tile_importer(4, 'assets', 'images', 'attacks')
+        self.sounds = audio_importer('assets', 'audio')
 
         self.store = MonsterManager(self.all_sprites)
 
         self.menu = Menus(self.store, self.__get_input)
 
-        self.timers = { 'player_end': Timer(1000, self.opponent_turn), 'opponent_end': Timer(1000, self.player_turn) }
+        self.timers = { 'player_end': Timer(1000, self.__opponent_turn), 'opponent_end': Timer(1000, self.__player_turn) }
         self.active = True
 
         self.running = True
@@ -34,15 +35,14 @@ class Game ():
         for timer in self.timers.values():
             timer.update() 
 
-    def player_turn ( self ):
-        print('MONSTERS LEFT: ', self.store.has_monsters_left())
-        if not self.store.has_monsters_left(): 
-            return self.__end_game()
+    def __player_turn ( self ):
+        if not self.store.has_monsters_left(): return self.__end_game()
+
         if not self.store.is_monster_healty(self.store.player_monster):
             self.store.switch_monster(self.store.get_next_available_monster())
         self.active = True
 
-    def opponent_turn ( self ):
+    def __opponent_turn ( self ):
         if not self.store.is_monster_healty(self.store.opponent_monster):
             self.store.set_opponent_monster()
         else:
@@ -56,13 +56,16 @@ class Game ():
     def __get_input ( self, state: State, data: Attacks | Monsters ):
         if state == 'general' and data == 'heal': 
             self.store.heal_monster()
+            self.__play_sound('green')
 
         if state == 'general' and data == 'escape': 
             self.__end_game()
 
-        if state == 'attack' and data in Attacks.__args__: 
+        if state == 'attack' and data in Attacks.__args__:
+            anim = ABILITIES_DATA[data]['animation'] 
             self.store.apply_attack(self.store.opponent_monster, cast(Attacks, data))
-            a.AttackAnimation(self.store.opponent_monster, self.attack_animations[ABILITIES_DATA[data]['animation']], self.all_sprites)
+            a.AttackAnimation(self.store.opponent_monster, self.attack_animations[anim], self.all_sprites)
+            self.__play_sound(anim)
 
         if state == 'switch' and data in Monsters.__args__: 
             self.store.switch_monster(cast(Monsters, data)) 
@@ -83,7 +86,10 @@ class Game ():
     def __init_combattants ( self ):
         self.store.init_player_monster()
 
+    def __play_sound ( self, title: Sounds ): self.sounds[title].play()
+
     def run ( self ):
+        self.__play_sound(isSound('music'))
 
         self.__init_combattants()
 
