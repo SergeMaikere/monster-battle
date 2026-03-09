@@ -1,4 +1,6 @@
 from functools import partial
+from typing import cast
+from entities.Creatures import Creature
 from settings import *
 from pygame.sprite import Group
 from random import choice, sample
@@ -21,8 +23,7 @@ class MonsterManager:
 
             self.player_monsters = [ Monster( name, self.monsters_back[name], bottomleft=(100, WINDOW_HEIGHT) ) for name in self.__get_sample_monsters_names(6) ]
             self.player_monster: Monster = self.player_monsters[0]
-            self.opponent_name =  self.__get_sample_monsters_names(1).pop()
-            self.opponent_monster = Opponent(self.opponent_name, self.monsters_front[self.opponent_name], self.all_sprites, midbottom=(WINDOW_WIDTH - 250, 300))
+            self.opponent_monster = self.make_opponent_monster()
 
             self.initialized = True
 
@@ -33,12 +34,23 @@ class MonsterManager:
         return cls._instance
 
 
+    def __get_single_monster_name ( self ) -> Monsters:
+        name = choice( [name for name in MONSTER_DATA.keys()] )
+        if name in Monsters.__args__:
+            return cast(Monsters, name)  
+        else: 
+            raise ValueError('Invalid Monster Name')
+
     def __get_sample_monsters_names ( self, n: int ) -> list[Monsters]: 
         names = sample(tuple(MONSTER_DATA.keys()), n)
         if all(name in Monsters.__args__ for name in names):
-            return names
+            return cast(list[Monsters], names)
         else:
             raise ValueError('Invalid Monster Name')
+
+    def make_opponent_monster ( self ):
+        name = self.__get_single_monster_name()
+        return Opponent(name, self.monsters_front[name], self.all_sprites, midbottom=(WINDOW_WIDTH - 250, 300))
 
 
     def init_player_monster ( self ): self.all_sprites.add(self.player_monster)
@@ -64,13 +76,11 @@ class MonsterManager:
 
     def set_opponent_monster ( self ):
         self.remove_previous_monster('opponent')
-        name = self.__get_sample_monsters_names(1).pop()
-        self.opponent_monster = Opponent(name, self.monsters_front[name], self.all_sprites, midbottom=(WINDOW_WIDTH - 250, 300))
+        self.opponent_monster = self.make_opponent_monster()
         self.all_sprites.add(self.opponent_monster)
     
     def get_avilable_monsters ( self ): 
         return [ monster.name for monster in self.player_monsters if monster.name != self.player_monster.name and monster.health > 0 ]
-
 
     def switch_monster ( self, name: Monsters ):
         monster = next(monster for monster in self.player_monsters if monster.name == name)
@@ -81,10 +91,17 @@ class MonsterManager:
     def __calculate_health_malus ( self, target: Monster | Opponent, ability_data: Ability ) -> float: 
         return ability_data['damage'] * ELEMENT_DATA[ability_data['element']][MONSTER_DATA[target.name]['element']]
 
-    def apply_attack ( self, target: Monster | Opponent, attack: Attacks ):
-        malus = pipe( self.__get_ability_datas_by_name, partial(self.__calculate_health_malus, target) )(attack)
+    def __substract_damage ( self, target: Monster | Opponent, malus: int ): 
         target.health -= malus
-        print(f'{target.name} -> {attack} -{malus} MAX HEALTH: {target.max_health} CURRENT HEALTH: {target.health}')
+        return malus
+
+    def apply_attack ( self, target: Monster | Opponent, attack: Attacks ):
+        malus = pipe( 
+            self.__get_ability_datas_by_name, 
+            partial(self.__calculate_health_malus, target) ,
+            partial(self.__substract_damage, target)
+        )(attack)
+        print(f'{target.name} -> ATTACK: {attack} DAMAGE: -{malus} CURRENT HEALTH: {target.health} MAX-HEALTH: {target.max_health}')
     
     def heal_monster ( self ): self.player_monster.health += 50
 
