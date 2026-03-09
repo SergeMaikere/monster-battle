@@ -20,9 +20,9 @@ class Game ():
         self.bg_images = folder_importer('assets', 'images', 'other')
         self.attack_animations = tile_importer(4, 'assets', 'images', 'attacks')
 
-        self.monster_manager = MonsterManager(self.all_sprites)
+        self.store = MonsterManager(self.all_sprites)
 
-        self.menu = Menus(self.monster_manager, self.__get_input)
+        self.menu = Menus(self.store, self.__get_input)
 
         self.timers = { 'player_end': Timer(1000, self.opponent_turn), 'opponent_end': Timer(1000, self.player_turn) }
         self.active = True
@@ -38,26 +38,29 @@ class Game ():
         self.active = True
 
     def opponent_turn ( self ):
-        attack = choice(self.monster_manager.opponent_monster.abilities)
-        self.monster_manager.apply_attack(self.monster_manager.player_monster, cast(Attacks, attack))
-        a.AttackAnimation(self.monster_manager.player_monster, self.attack_animations[ABILITIES_DATA[attack]['animation']], self.all_sprites)
+        if self.store.opponent_monster.health <= 0:
+            self.store.set_opponent_monster()
+        else:
+            attack = choice(self.store.opponent_monster.abilities)
+            self.store.apply_attack(self.store.player_monster, cast(Attacks, attack))
+            a.AttackAnimation(self.store.player_monster, self.attack_animations[ABILITIES_DATA[attack]['animation']], self.all_sprites)
         self.timers['opponent_end'].start()
 
     def __end_game ( self ): self.running = False
 
     def __get_input ( self, state: State, data: Attacks | Monsters ):
         if state == 'general' and data == 'heal': 
-            self.monster_manager.heal_monster()
+            self.store.heal_monster()
 
         if state == 'general' and data == 'escape': 
             self.__end_game()
 
         if state == 'attack' and data in Attacks.__args__: 
-            self.monster_manager.apply_attack(self.monster_manager.opponent_monster, cast(Attacks, data))
-            a.AttackAnimation(self.monster_manager.opponent_monster, self.attack_animations[ABILITIES_DATA[data]['animation']], self.all_sprites)
+            self.store.apply_attack(self.store.opponent_monster, cast(Attacks, data))
+            a.AttackAnimation(self.store.opponent_monster, self.attack_animations[ABILITIES_DATA[data]['animation']], self.all_sprites)
 
         if state == 'switch' and data in Monsters.__args__: 
-            self.monster_manager.switch_monster(cast(Monsters, data)) 
+            self.store.switch_monster(cast(Monsters, data)) 
 
         self.active = False
         self.timers['player_end'].start()
@@ -73,7 +76,7 @@ class Game ():
 
 
     def __init_combattants ( self ):
-        self.monster_manager.init_player_monster()
+        self.store.init_player_monster()
 
     def run ( self ):
 

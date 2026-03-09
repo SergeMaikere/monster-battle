@@ -45,16 +45,29 @@ class MonsterManager:
 
     def get_monster_surface ( self, name: Monsters ): return self.monsters_minis[name]
 
-    def remove_previous_monster ( self, trainer: Literal['player', 'opponent'] ):
+    def __kill_previous_monster ( self, trainer: Literal['player', 'opponent'] ):
+        monster = self.player_monster if trainer == 'player' else self.opponent_monster
+        monster.kill()
+
+    def __remove_previous_monster_from_all_sprites ( self, trainer: Literal['player', 'opponent'] ):
         sprite = next((sprite for sprite in self.all_sprites if type(sprite) == (Monster if trainer == 'player' else Opponent)), None)
         if sprite: self.all_sprites.remove(sprite)
 
+    def remove_previous_monster ( self, trainer: Literal['player', 'opponent'] ):
+        self.__kill_previous_monster(trainer)
+        self.__remove_previous_monster_from_all_sprites(trainer)
+
     def set_player_monster ( self, monster: Monster ):
-        self.player_monster.kill()
         self.remove_previous_monster('player')
         self.player_monster = monster
         self.init_player_monster()
 
+    def set_opponent_monster ( self ):
+        self.remove_previous_monster('opponent')
+        name = self.__get_sample_monsters_names(1).pop()
+        self.opponent_monster = Opponent(name, self.monsters_front[name], self.all_sprites, midbottom=(WINDOW_WIDTH - 250, 300))
+        self.all_sprites.add(self.opponent_monster)
+    
     def get_avilable_monsters ( self ): 
         return [ monster.name for monster in self.player_monsters if monster.name != self.player_monster.name and monster.health > 0 ]
 
