@@ -19,7 +19,7 @@ class SwitchMenu:
 		self.cell_width, self.cell_height = self.__get_width_height()
 
 		self.get_menu_index = get_menu_index
-		self.options = self.monster_manager.get_avilable_monsters()
+		self.options = self.monster_manager.get_available_monsters()
 
 		self.canvas = get_canvas()
 		self.font = pygame.font.Font(None, 30)
@@ -59,7 +59,7 @@ class SwitchMenu:
 	def __get_mini_surface ( self, index: int ): 
 		return { 'mini_surface': self.monster_manager.get_monster_surface(cast(Monsters, self.options[index])) }
 
-	def __update_menu_options ( self ): self.options = self.monster_manager.get_avilable_monsters()
+	def __update_menu_options ( self ): self.options = self.monster_manager.get_available_monsters()
 
 	def __draw_menu_rect ( self ):		
 		pygame.draw.rect(self.canvas, COLORS['white'], self.rect, 0, 4)

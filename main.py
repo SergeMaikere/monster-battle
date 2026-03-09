@@ -35,14 +35,15 @@ class Game ():
             timer.update() 
 
     def player_turn ( self ):
-        if len(self.store.get_avilable_monsters()) == 0: self.__end_game()
-        
-        if self.store.player_monster.health <= 0:
-            self.store.switch_monster(self.store.get_avilable_monsters()[0])
+        print('MONSTERS LEFT: ', self.store.has_monsters_left())
+        if not self.store.has_monsters_left(): 
+            return self.__end_game()
+        if not self.store.is_monster_healty(self.store.player_monster):
+            self.store.switch_monster(self.store.get_next_available_monster())
         self.active = True
 
     def opponent_turn ( self ):
-        if self.store.opponent_monster.health <= 0:
+        if not self.store.is_monster_healty(self.store.opponent_monster):
             self.store.set_opponent_monster()
         else:
             attack = choice(self.store.opponent_monster.abilities)

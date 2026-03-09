@@ -51,6 +51,8 @@ class MonsterManager:
         name = self.__get_single_monster_name()
         return Opponent(name, self.monsters_front[name], self.all_sprites, midbottom=(WINDOW_WIDTH - 250, 300))
 
+    def is_monster_healty ( self, monster: Monster | Opponent ): return monster.health > 0
+
 
     def init_player_monster ( self ): self.all_sprites.add(self.player_monster)
 
@@ -78,8 +80,14 @@ class MonsterManager:
         self.opponent_monster = self.make_opponent_monster()
         self.all_sprites.add(self.opponent_monster)
 
-    def get_avilable_monsters ( self ) -> list[Monsters]: 
+    def has_monsters_left ( self ) -> bool:
+        return len([ monster for monster in self.player_monsters if monster.health > 0 ]) > 0
+
+    def get_available_monsters ( self ) -> list[Monsters]: 
         return [ cast(Monsters, monster.name) for monster in self.player_monsters if monster.name != self.player_monster.name and monster.health > 0 ]
+
+    def get_next_available_monster ( self ) -> Monsters:
+        return next(cast(Monsters, monster.name) for monster in self.player_monsters if monster.name != self.player_monster.name and monster.health > 0)
 
     def switch_monster ( self, name: Monsters ):
         monster = next(monster for monster in self.player_monsters if monster.name == name)

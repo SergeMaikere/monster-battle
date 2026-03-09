@@ -66,7 +66,7 @@ class Menus:
 	def __get_menu_datas ( self ):
 		match self.state:
 			case 'attack': return (self.attack_index, self.attack_dimensions, self.monster_manager.player_monster.abilities)
-			case 'switch': return (self.switch_index, self.switch_dimensions, self.monster_manager.get_avilable_monsters())
+			case 'switch': return (self.switch_index, self.switch_dimensions, self.monster_manager.get_available_monsters())
 			case _: return (self.general_index, self.general_dimensions, self.general_options)
 
 	def __update_switch_index ( self, keys: ScancodeWrapper, options: list[str] ):
