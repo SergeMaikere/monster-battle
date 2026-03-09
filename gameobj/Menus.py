@@ -1,7 +1,8 @@
-from gameobj import Infos as I
 from settings import *
-from typing import Callable, cast
 from pygame.key import ScancodeWrapper
+from typing import Callable, cast
+from gameobj.AttackMenu import AttackMenu
+from gameobj import Infos as I
 from gameobj.Menu import Menu
 from gameobj.SwitchMenu import SwitchMenu
 from utils.MonsterManager import MonsterManager
@@ -38,9 +39,9 @@ class Menus:
 
 		self.attack_dimensions = self.__set_table_dimensions(2, 2)
 		self.attack_index: RowCol = self.__init_index()
-		self.attack_menu = Menu( 
+		self.attack_menu = AttackMenu( 
 			self.rect,
-			self.monster_manager.player_monster.abilities,
+			self.monster_manager,
 			self.attack_index, 
 			self.attack_dimensions 
 		)

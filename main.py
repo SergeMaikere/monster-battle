@@ -1,7 +1,8 @@
+from gameobj import AttackAnimation as a
 from settings import *
 from typing import cast
 from gameobj.Menus import Menus
-from utils.Helper import folder_importer
+from utils.Helper import folder_importer, tile_importer
 from utils.MonsterManager import MonsterManager
 from utils.Timer import Timer
 from random import choice
@@ -16,7 +17,8 @@ class Game ():
         self.all_sprites = pygame.sprite.Group()
 
         self.bg_images = folder_importer('assets', 'images', 'other')
-   
+        self.attack_animations = tile_importer(4, 'assets', 'images', 'attacks')
+
         self.monster_manager = MonsterManager(self.all_sprites)
 
         self.menu = Menus(self.monster_manager, self.__get_input)
@@ -37,6 +39,7 @@ class Game ():
     def opponent_turn ( self ):
         attack = choice(self.monster_manager.opponent_monster.abilities)
         self.monster_manager.apply_attack(self.monster_manager.player_monster, cast(Attacks, attack))
+        a.AttackAnimation(self.monster_manager.player_monster, self.attack_animations[ABILITIES_DATA[attack]['animation']], self.all_sprites)
         self.timers['opponent_end'].start()
 
     def __end_game ( self ): self.running = False
@@ -44,10 +47,14 @@ class Game ():
     def __get_input ( self, state: State, data: Attacks | Monsters ):
         if state == 'general' and data == 'heal': 
             self.monster_manager.heal_monster()
+
         if state == 'general' and data == 'escape': 
             self.__end_game()
+
         if state == 'attack' and data in Attacks.__args__: 
             self.monster_manager.apply_attack(self.monster_manager.opponent_monster, cast(Attacks, data))
+            a.AttackAnimation(self.monster_manager.opponent_monster, self.attack_animations[ABILITIES_DATA[data]['animation']], self.all_sprites)
+            
         if state == 'switch' and data in Monsters.__args__: 
             self.monster_manager.switch_monster(cast(Monsters, data)) 
 

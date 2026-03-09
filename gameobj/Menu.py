@@ -34,7 +34,7 @@ class Menu:
 		row, col = row_col
 		return { 'color': COLORS['gray'] if row == self.menu_index['row'] and col == self.menu_index['col'] else COLORS['black'] }
 
-	def __get_text_surface ( self, index: int, menu_data: dict[str, Any] ):
+	def _get_text_surface ( self, index: int, menu_data: dict[str, Any] ):
 		return { 'text_surface': self.font.render(self.options[index], True, menu_data['color']) }
 	
 	
@@ -55,7 +55,7 @@ class Menu:
 	def __set_menu_text ( self, row_col: tuple[int, int], index: int ):
 		pipe(
 			self.__get_text_color,
-			partial(self.__get_text_surface, index),
+			partial(self._get_text_surface, index),
 			partial(self.__get_item_position, (row_col)),
 			self.__get_text_rect,
 			self.__draw_menu_item
