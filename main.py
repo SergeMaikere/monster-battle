@@ -1,3 +1,4 @@
+from entities.Creatures import Creature
 from gameobj import AttackAnimation as a
 from settings import *
 from typing import cast
@@ -54,7 +55,7 @@ class Game ():
         if state == 'attack' and data in Attacks.__args__: 
             self.monster_manager.apply_attack(self.monster_manager.opponent_monster, cast(Attacks, data))
             a.AttackAnimation(self.monster_manager.opponent_monster, self.attack_animations[ABILITIES_DATA[data]['animation']], self.all_sprites)
-            
+
         if state == 'switch' and data in Monsters.__args__: 
             self.monster_manager.switch_monster(cast(Monsters, data)) 
 
@@ -66,7 +67,7 @@ class Game ():
         self.canvas.blit(self.bg_images['bg'], (0, 0))
 
     def __draw_monster_floor ( self ):
-        for monster in self.all_sprites:
+        for monster in [ sprite for sprite in self.all_sprites if isinstance(sprite, Creature) ]:
             floor_rect = self.bg_images['floor'].get_frect(center=monster.rect.midbottom + pygame.Vector2(0, -10))
             self.canvas.blit(self.bg_images['floor'], floor_rect)
 

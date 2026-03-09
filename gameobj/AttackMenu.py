@@ -12,5 +12,4 @@ class AttackMenu ( Menu ):
 
 
 	def _get_text_surface ( self, index: int, menu_data: dict[str, Any] ):
-		print(self.manager.player_monster.abilities[index])
 		return { 'text_surface': self.font.render(self.manager.player_monster.abilities[index], True, menu_data['color']) }

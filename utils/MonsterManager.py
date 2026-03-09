@@ -50,9 +50,10 @@ class MonsterManager:
         if sprite: self.all_sprites.remove(sprite)
 
     def set_player_monster ( self, monster: Monster ):
+        self.player_monster.kill()
         self.remove_previous_monster('player')
-        self.all_sprites.add(monster)
         self.player_monster = monster
+        self.init_player_monster()
 
     def get_avilable_monsters ( self ): 
         return [ monster.name for monster in self.player_monsters if monster.name != self.player_monster.name and monster.health > 0 ]
