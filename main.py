@@ -35,6 +35,10 @@ class Game ():
             timer.update() 
 
     def player_turn ( self ):
+        if len(self.store.get_avilable_monsters()) == 0: self.__end_game()
+        
+        if self.store.player_monster.health <= 0:
+            self.store.switch_monster(self.store.get_avilable_monsters()[0])
         self.active = True
 
     def opponent_turn ( self ):

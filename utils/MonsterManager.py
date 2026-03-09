@@ -1,6 +1,5 @@
 from functools import partial
 from typing import cast
-from entities.Creatures import Creature
 from settings import *
 from pygame.sprite import Group
 from random import choice, sample
@@ -21,7 +20,7 @@ class MonsterManager:
             self.monsters_front = folder_importer('assets', 'images', 'front')
             self.monsters_minis = folder_importer('assets', 'images', 'simple')
 
-            self.player_monsters = [ Monster( name, self.monsters_back[name], bottomleft=(100, WINDOW_HEIGHT) ) for name in self.__get_sample_monsters_names(6) ]
+            self.player_monsters = [ Monster( name, self.monsters_back[name], bottomleft=(100, WINDOW_HEIGHT) ) for name in self.__get_sample_monsters_names(1) ]
             self.player_monster: Monster = self.player_monsters[0]
             self.opponent_monster = self.make_opponent_monster()
 
@@ -78,9 +77,9 @@ class MonsterManager:
         self.remove_previous_monster('opponent')
         self.opponent_monster = self.make_opponent_monster()
         self.all_sprites.add(self.opponent_monster)
-    
-    def get_avilable_monsters ( self ): 
-        return [ monster.name for monster in self.player_monsters if monster.name != self.player_monster.name and monster.health > 0 ]
+
+    def get_avilable_monsters ( self ) -> list[Monsters]: 
+        return [ cast(Monsters, monster.name) for monster in self.player_monsters if monster.name != self.player_monster.name and monster.health > 0 ]
 
     def switch_monster ( self, name: Monsters ):
         monster = next(monster for monster in self.player_monsters if monster.name == name)
