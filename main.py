@@ -1,9 +1,12 @@
-from entities.Opponent import Opponent
-from entities.Monster import Monster
-from gameobj.Menus import Menus
 from settings import *
-from utils.Helper import folder_importer
-from random import sample, choice
+from random import choice
+from entities.Creatures import Creature
+from gameobj import AttackAnimation as a
+from typing import cast
+from gameobj.Menus import Menus
+from utils.Helper import audio_importer, folder_importer, tile_importer
+from utils.MonsterManager import MonsterManager
+from utils.Timer import Timer
 
 class Game ():
     def __init__(self) -> None:
@@ -15,61 +18,79 @@ class Game ():
         self.all_sprites = pygame.sprite.Group()
 
         self.bg_images = folder_importer('assets', 'images', 'other')
-        self.monsters_back = folder_importer('assets', 'images', 'back')
-        self.monsters_front = folder_importer('assets', 'images', 'front')
-        self.monsters_minis = folder_importer('assets', 'images', 'simple')
+        self.attack_animations = tile_importer(4, 'assets', 'images', 'attacks')
+        self.sounds = audio_importer('assets', 'audio')
 
-        self.player_monster_list = sample(tuple(MONSTER_DATA.keys()), 6)
-        self.player_monsters = [ Monster( name, self.monsters_back[name], bottomleft=(100, WINDOW_HEIGHT) ) for name in self.player_monster_list ]
-        
-        self._player_monster = self.player_monsters[0]
-        self._opponent_name = choice(tuple(MONSTER_DATA.keys()))
+        self.store = MonsterManager(self.all_sprites)
 
-        self.menu = Menus(self.player_monster, self.player_monsters, self.__get_monster_surface)
+        self.menu = Menus(self.store, self.__get_input)
+
+        self.timers = { 'player_end': Timer(1000, self.__opponent_turn), 'opponent_end': Timer(1000, self.__player_turn) }
+        self.active = True
 
         self.running = True
 
-    @property
-    def player_monster ( self ):
-        return self._player_monster
 
-    @player_monster.setter
-    def player_monster ( self, monster: Monster ):
-        # self.remove_previous_monster('player')
-        self.all_sprites.add(monster)
-        self._player_monster = monster
+    def __update_timers ( self ): 
+        for timer in self.timers.values():
+            timer.update() 
 
-    @property
-    def opponent_name ( self ):
-        return self._opponent_name
+    def __player_turn ( self ):
+        if not self.store.has_monsters_left(): return self.__end_game()
 
-    @opponent_name.setter
-    def opponent_name ( self, name: str ):
-        # self.remove_previous_monster('opponent')
-        self._opponent_name = name
-        self.opponent_monster = Opponent(self._opponent_name, self.monsters_front[self._opponent_name], self.all_sprites, midbottom=(WINDOW_WIDTH - 250, 300))
+        if not self.store.is_monster_healty(self.store.player_monster):
+            self.store.switch_monster(self.store.get_next_available_monster())
+        self.active = True
 
-    def __get_monster_surface ( self, name: str ): return self.monsters_minis[name]
+    def __opponent_turn ( self ):
+        if not self.store.is_monster_healty(self.store.opponent_monster):
+            self.store.set_opponent_monster()
+        else:
+            attack = choice(self.store.opponent_monster.abilities)
+            self.store.apply_attack(self.store.player_monster, cast(Attacks, attack))
+            a.AttackAnimation(self.store.player_monster, self.attack_animations[ABILITIES_DATA[attack]['animation']], self.all_sprites)
+        self.timers['opponent_end'].start()
+
+    def __end_game ( self ): self.running = False
+
+    def __get_input ( self, state: State, data: Attacks | Monsters ):
+        if state == 'general' and data == 'heal': 
+            self.store.heal_monster()
+            a.AttackAnimation(self.store.player_monster, self.attack_animations['green'], self.all_sprites)
+            self.__play_sound('green')
+
+        if state == 'general' and data == 'escape': 
+            self.__end_game()
+
+        if state == 'attack' and data in Attacks.__args__:
+            anim = ABILITIES_DATA[data]['animation'] 
+            self.store.apply_attack(self.store.opponent_monster, cast(Attacks, data))
+            a.AttackAnimation(self.store.opponent_monster, self.attack_animations[anim], self.all_sprites)
+            self.__play_sound(anim)
+
+        if state == 'switch' and data in Monsters.__args__: 
+            self.store.switch_monster(cast(Monsters, data)) 
+
+        self.active = False
+        self.timers['player_end'].start()
+        
 
     def __set_background ( self ):
         self.canvas.blit(self.bg_images['bg'], (0, 0))
 
     def __draw_monster_floor ( self ):
-        for monster in self.all_sprites:
+        for monster in [ sprite for sprite in self.all_sprites if isinstance(sprite, Creature) ]:
             floor_rect = self.bg_images['floor'].get_frect(center=monster.rect.midbottom + pygame.Vector2(0, -10))
             self.canvas.blit(self.bg_images['floor'], floor_rect)
 
-    def remove_previous_monster ( self, trainer: Literal['player', 'opponent'] ):
-        old_monster_name = self.player_monster.name if trainer == 'player' else self.opponent_monster.name
-        for sprite in self.all_sprites:
-            if sprite.name == old_monster_name:
-                self.all_sprites.remove(sprite)
 
     def __init_combattants ( self ):
-        self.player_monster = self.player_monsters[0]
-        self.opponent_name = self.opponent_name
+        self.store.init_player_monster()
+
+    def __play_sound ( self, title: Sounds ): self.sounds[title].play()
 
     def run ( self ):
+        self.__play_sound(isSound('music'))
 
         self.__init_combattants()
 
@@ -83,11 +104,11 @@ class Game ():
 
             self.__draw_monster_floor()
 
+            if self.active: self.menu.update()
+            self.__update_timers()
             self.all_sprites.update(dt)
 
             self.all_sprites.draw(self.canvas)
-
-            self.menu.update()
             self.menu.draw()
 
             pygame.display.update()
