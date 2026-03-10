@@ -56,6 +56,7 @@ class Game ():
     def __get_input ( self, state: State, data: Attacks | Monsters ):
         if state == 'general' and data == 'heal': 
             self.store.heal_monster()
+            a.AttackAnimation(self.store.player_monster, self.attack_animations['green'], self.all_sprites)
             self.__play_sound('green')
 
         if state == 'general' and data == 'escape': 

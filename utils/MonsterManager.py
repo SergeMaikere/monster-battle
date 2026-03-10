@@ -35,7 +35,6 @@ class MonsterManager:
 
     def __get_single_monster_name ( self ) -> Monsters:
         name = choice( [name for name in MONSTER_DATA.keys()] )
-        print(name)
         if name in Monsters.__args__:
             return cast(Monsters, name)  
         else: 
@@ -109,7 +108,7 @@ class MonsterManager:
             partial(self.__calculate_health_malus, target) ,
             partial(self.__substract_damage, target)
         )(attack)
-        print(f'VICTIM: {target.name} -> ATTACK: {attack} DAMAGE: -{malus} CURRENT HEALTH: {target.health} MAX-HEALTH: {target.max_health}')
+        print(f'VICTIM: {target.name} -> ATTACK: {attack} -> DAMAGE: -{malus} -> CURRENT-HEALTH: {target.health} /// MAX-HEALTH: {target.max_health}')
     
     def heal_monster ( self ): self.player_monster.health += 50
 
