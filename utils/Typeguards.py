@@ -29,6 +29,13 @@ def isSound ( title: str ) -> Sounds:
 	else:
 		raise ValueError('Invalid sound filename')
 
+def isAnimation ( name: str ) -> Animations:
+	if name in Animations.__args__:
+		return cast(Animations, name)
+	else:
+		raise ValueError('Invalid animation name')
+
+
 def isInt ( n: Any ) -> int:
 	if type(n) == int: return cast(int, n)
 	raise TypeError("This ain't no int")

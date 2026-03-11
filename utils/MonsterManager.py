@@ -43,8 +43,9 @@ class MonsterManager:
         name = self.__get_single_monster_name()
         return Opponent(name, self.monsters_front[name], self.all_sprites, midbottom=(WINDOW_WIDTH - 250, 300))
 
-    def is_monster_healty ( self, monster: Monster | Opponent ): return monster.health > 0
+    def get_opponent_attack ( self ): return choice(self.opponent_monster.abilities)
 
+    def is_monster_healty ( self, monster: Monster | Opponent ): return monster.health > 0
 
     def init_player_monster ( self ): self.all_sprites.add(self.player_monster)
 

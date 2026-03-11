@@ -90,4 +90,6 @@ Monsters = Literal[
 
 Attacks = Literal[ 'scratch', 'spark', 'nuke', 'splash', 'shards', 'spiral' ]
 
-Sounds = Literal['scratch', 'fire', 'explosion', 'splash', 'ice', 'green', 'music' ]
+Animations = Literal[ 'scratch', 'fire', 'explosion', 'splash', 'ice', 'green' ] 
+
+Sounds = Literal[ 'scratch', 'fire', 'explosion', 'splash', 'ice', 'green', 'music' ]
