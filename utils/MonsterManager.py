@@ -1,12 +1,11 @@
-from functools import partial
-from typing import cast
 from settings import *
+from functools import partial
 from pygame.sprite import Group
 from random import choice, sample
 from entities.Monster import Monster
 from entities.Opponent import Opponent
 from utils.Helper import folder_importer, pipe
-
+from utils.Typeguards import isMonsters
 
 class MonsterManager:
     _instance = None
@@ -34,25 +33,19 @@ class MonsterManager:
 
 
     def __get_single_monster_name ( self ) -> Monsters:
-        name = choice( [name for name in MONSTER_DATA.keys()] )
-        if name in Monsters.__args__:
-            return cast(Monsters, name)  
-        else: 
-            raise ValueError('Invalid Monster Name')
+      return isMonsters(choice( [name for name in MONSTER_DATA.keys()] ))
 
     def __get_sample_monsters_names ( self, n: int ) -> list[Monsters]: 
-        names = sample(tuple(MONSTER_DATA.keys()), n)
-        if all(name in Monsters.__args__ for name in names):
-            return cast(list[Monsters], names)
-        else:
-            raise ValueError('Invalid Monster Name')
+        return [ isMonsters(name) for name in sample(tuple(MONSTER_DATA.keys()), n) ]
+        
 
     def make_opponent_monster ( self ):
         name = self.__get_single_monster_name()
         return Opponent(name, self.monsters_front[name], self.all_sprites, midbottom=(WINDOW_WIDTH - 250, 300))
 
-    def is_monster_healty ( self, monster: Monster | Opponent ): return monster.health > 0
+    def get_opponent_attack ( self ): return choice(self.opponent_monster.abilities)
 
+    def is_monster_healty ( self, monster: Monster | Opponent ): return monster.health > 0
 
     def init_player_monster ( self ): self.all_sprites.add(self.player_monster)
 
@@ -84,10 +77,10 @@ class MonsterManager:
         return len([ monster for monster in self.player_monsters if monster.health > 0 ]) > 0
 
     def get_available_monsters ( self ) -> list[Monsters]: 
-        return [ cast(Monsters, monster.name) for monster in self.player_monsters if monster.name != self.player_monster.name and monster.health > 0 ]
+        return [ isMonsters(monster.name) for monster in self.player_monsters if monster.name != self.player_monster.name and monster.health > 0 ]
 
     def get_next_available_monster ( self ) -> Monsters:
-        return next(cast(Monsters, monster.name) for monster in self.player_monsters if monster.name != self.player_monster.name and monster.health > 0)
+        return next(isMonsters(monster.name) for monster in self.player_monsters if monster.name != self.player_monster.name and monster.health > 0)
 
     def switch_monster ( self, name: Monsters ):
         monster = next(monster for monster in self.player_monsters if monster.name == name)

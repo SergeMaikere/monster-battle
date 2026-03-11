@@ -1,9 +1,10 @@
 from settings import *
 from functools import partial
-from typing import Any, Callable, cast
+from typing import Any, Callable
 from pygame import FRect
 from utils.Helper import get_canvas, pipe
 from utils.MonsterManager import MonsterManager
+from utils.Typeguards import isMonsters
 
 class SwitchMenu:
 	def __init__(self, 
@@ -57,7 +58,7 @@ class SwitchMenu:
 			if item == 'mini': self.canvas.blit(menu_data['mini_surface'], menu_data['mini_rect'])
 
 	def __get_mini_surface ( self, index: int ): 
-		return { 'mini_surface': self.monster_manager.get_monster_surface(cast(Monsters, self.options[index])) }
+		return { 'mini_surface': self.monster_manager.get_monster_surface(isMonsters(self.options[index])) }
 
 	def __update_menu_options ( self ): self.options = self.monster_manager.get_available_monsters()
 

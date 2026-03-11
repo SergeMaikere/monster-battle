@@ -1,5 +1,5 @@
-from pygame import SRCALPHA
 from settings import *
+from pygame import FRect
 from functools import reduce
 from pygame.surface import Surface
 from utils.Errors import NoDisplaySurface 
@@ -40,3 +40,9 @@ def tile_importer ( cols: int, *path: str ) -> dict[str, list[Surface]]:
             width_cut = anim_surface.get_width() / cols
             attack_anim[file.split('.')[0]] = [ cut_animation(anim_surface, width_cut, col) for col in range(cols) ]
     return attack_anim
+
+
+def get_frect ( surface: Surface, **anchor: tuple[float, float] ) -> FRect: 
+    rect = surface.get_frect(**anchor)
+    if rect: return cast(FRect, rect)
+    raise ValueError('Surface could not create rectangle')

@@ -1,6 +1,7 @@
 from settings import *
 from pygame import Surface
 from entities.Creatures import Creature
+from utils.Helper import get_frect
 
 
 class Monster ( pygame.sprite.Sprite, Creature ):
@@ -8,5 +9,5 @@ class Monster ( pygame.sprite.Sprite, Creature ):
 		super().__init__()
 
 		self.image = image
-		self.rect = image.get_frect(**anchor)
+		self.rect = get_frect(self.image, **anchor)
 		self.get_data(name)

@@ -1,4 +1,4 @@
-from typing import Literal, TypeVar, TypedDict, cast
+from typing import Any, Literal, TypeVar, TypedDict, cast
 import pygame
 from os.path import join 
 from os import walk
@@ -90,16 +90,6 @@ Monsters = Literal[
 
 Attacks = Literal[ 'scratch', 'spark', 'nuke', 'splash', 'shards', 'spiral' ]
 
-Sounds = Literal['scratch', 'fire', 'explosion', 'splash', 'ice', 'green', 'music' ]
+Animations = Literal[ 'scratch', 'fire', 'explosion', 'splash', 'ice', 'green' ] 
 
-
-def isSound ( title: str ) -> Sounds:
-	if title in Sounds.__args__:
-		return cast(Sounds, title)
-	else:
-		raise ValueError('Invalid sound filename')
-
-
-
-# TODO
-# MAKE TYPEGUARDS DOR ALL MY LITERALS
+Sounds = Literal[ 'scratch', 'fire', 'explosion', 'splash', 'ice', 'green', 'music' ]

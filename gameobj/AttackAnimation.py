@@ -1,7 +1,7 @@
+from settings import *
 from pygame import Surface
 from pygame.sprite import Group
 from entities import Opponent as o, Monster as m
-from settings import *
 
 class AttackAnimation ( pygame.sprite.Sprite ):
 	def __init__(self, monster: m.Monster | o.Opponent, frames: list[Surface], *groups: Group) -> None:

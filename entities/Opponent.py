@@ -1,7 +1,8 @@
 from settings import *
+from pygame.sprite import Group
 from pygame import Surface
 from entities.Creatures import Creature
-from pygame.sprite import Group
+from utils.Helper import get_frect
 
 
 class Opponent ( pygame.sprite.Sprite, Creature ):
@@ -9,5 +10,5 @@ class Opponent ( pygame.sprite.Sprite, Creature ):
 		super().__init__(*groups)
 
 		self.image = image
-		self.rect = image.get_frect(**anchor)
+		self.rect = get_frect(self.image, **anchor)
 		self.get_data(name)
