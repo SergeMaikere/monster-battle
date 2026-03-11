@@ -80,10 +80,10 @@ class Game ():
         self.__play_sound('green')
 
     def __get_input ( self, state: State, data: Attacks | Monsters | Literal['heal', 'escape'] ):
-        if state == 'attack' and data in Attacks.__args__: self.__attack_beast('opponent', isAttacks(data))
-        if state == 'switch' and data in Monsters.__args__: self.store.switch_monster(isMonsters(data))
-        if state == 'general' and data == 'heal': self.__heal_player()
-        if state == 'general' and data == 'escape': self.__end_game()
+        if state == 'attack': self.__attack_beast('opponent', isAttacks(data))
+        if state == 'switch': self.store.switch_monster(isMonsters(data))
+        if state == 'heal': self.__heal_player()
+        if state == 'escape': self.__end_game()
 
         self.active = False
         self.timers['player_end'].start()

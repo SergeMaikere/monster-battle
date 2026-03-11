@@ -1,6 +1,6 @@
 from settings import *
 from pygame.key import ScancodeWrapper
-from typing import Callable, cast
+from typing import Callable
 from gameobj.AttackMenu import AttackMenu
 from gameobj import Infos as I
 from gameobj.Menu import Menu
@@ -84,9 +84,9 @@ class Menus:
 	
 	def __update_menu_state ( self, index: RowCol, table: Table, options: list[str] | list[Monsters] ):
 		data = options[ index['col'] + index['row'] * table['cols'] ]
-		if data in ['attack', 'switch']: 
+		if data in ['attack', 'heal', 'escape', 'switch']: 
 			self.state = data
-		else:
+		elif self.state in ['attack', 'heal', 'escape']:
 			self.get_input(self.state, options[ index['col'] + index['row'] * table['cols'] ])
 			self.state = 'general'
 

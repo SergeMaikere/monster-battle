@@ -1,5 +1,5 @@
-from pygame import SRCALPHA, FRect, SurfaceType
 from settings import *
+from pygame import FRect
 from functools import reduce
 from pygame.surface import Surface
 from utils.Errors import NoDisplaySurface 
