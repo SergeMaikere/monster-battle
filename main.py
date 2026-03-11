@@ -1,12 +1,13 @@
+from entities.Monster import Monster
+from entities.Opponent import Opponent
 from settings import *
 from random import choice
-from entities.Creatures import Creature
 from gameobj import AttackAnimation as a
-from typing import cast
 from gameobj.Menus import Menus
 from utils.Helper import audio_importer, folder_importer, tile_importer
 from utils.MonsterManager import MonsterManager
 from utils.Timer import Timer
+from utils.Typeguards import isAttacks, isMonsters, isSound
 
 class Game ():
     def __init__(self) -> None:
@@ -47,13 +48,13 @@ class Game ():
             self.store.set_opponent_monster()
         else:
             attack = choice(self.store.opponent_monster.abilities)
-            self.store.apply_attack(self.store.player_monster, cast(Attacks, attack))
+            self.store.apply_attack(self.store.player_monster, isAttacks(attack))
             a.AttackAnimation(self.store.player_monster, self.attack_animations[ABILITIES_DATA[attack]['animation']], self.all_sprites)
         self.timers['opponent_end'].start()
 
     def __end_game ( self ): self.running = False
 
-    def __get_input ( self, state: State, data: Attacks | Monsters ):
+    def __get_input ( self, state: State, data: Attacks | Monsters | Literal['heal', 'escape'] ):
         if state == 'general' and data == 'heal': 
             self.store.heal_monster()
             a.AttackAnimation(self.store.player_monster, self.attack_animations['green'], self.all_sprites)
@@ -64,12 +65,12 @@ class Game ():
 
         if state == 'attack' and data in Attacks.__args__:
             anim = ABILITIES_DATA[data]['animation'] 
-            self.store.apply_attack(self.store.opponent_monster, cast(Attacks, data))
+            self.store.apply_attack(self.store.opponent_monster, isAttacks(data))
             a.AttackAnimation(self.store.opponent_monster, self.attack_animations[anim], self.all_sprites)
             self.__play_sound(anim)
 
         if state == 'switch' and data in Monsters.__args__: 
-            self.store.switch_monster(cast(Monsters, data)) 
+            self.store.switch_monster(isMonsters(data)) 
 
         self.active = False
         self.timers['player_end'].start()
@@ -79,7 +80,7 @@ class Game ():
         self.canvas.blit(self.bg_images['bg'], (0, 0))
 
     def __draw_monster_floor ( self ):
-        for monster in [ sprite for sprite in self.all_sprites if isinstance(sprite, Creature) ]:
+        for monster in [ sprite for sprite in self.all_sprites if isinstance(sprite, Monster) or isinstance(sprite, Opponent) ]:
             floor_rect = self.bg_images['floor'].get_frect(center=monster.rect.midbottom + pygame.Vector2(0, -10))
             self.canvas.blit(self.bg_images['floor'], floor_rect)
 

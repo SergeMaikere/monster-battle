@@ -1,5 +1,5 @@
-from pygame import FRect
 from settings import *
+from pygame import FRect
 from utils.Helper import get_canvas
 from utils.MonsterManager import MonsterManager
 
