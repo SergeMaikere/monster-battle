@@ -51,7 +51,7 @@ class Menus:
 		self.switch_dimensions = self.__set_table_dimensions(4, 1)
 		self.switch_menu = SwitchMenu( 
 			pygame.FRect(self.left, self.top - 100, 400, 400),
-			store,
+			self.store,
 			self.get_switch_index,
 			self.switch_dimensions, 
 		)

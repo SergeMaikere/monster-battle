@@ -4,10 +4,10 @@ from utils.Helper import get_canvas
 from utils.MonsterManager import MonsterManager
 
 class Infos:
-	def __init__(self, subject: Literal['player', 'opponent'], rect: FRect, monster_manager: MonsterManager) -> None:
+	def __init__(self, subject: Literal['player', 'opponent'], rect: FRect, store: MonsterManager) -> None:
 		
 		self.subject = subject
-		self.monster_manager = monster_manager
+		self.store = store
 
 		self.canvas = get_canvas()
 		self.font = pygame.font.Font(None, 30)
@@ -15,7 +15,7 @@ class Infos:
 		self.info_rect = rect
 
 
-	def __get_monster ( self ): return self.monster_manager.player_monster if self.subject == 'player' else self.monster_manager.opponent_monster
+	def __get_monster ( self ): return self.store.player_monster if self.subject == 'player' else self.store.opponent_monster
 
 	def __draw_menu_rect ( self, rect: FRect ):		
 		pygame.draw.rect(self.canvas, COLORS['white'], rect, 0, 4)
